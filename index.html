@@ -31,7 +31,8 @@
 }
 *,*::before,*::after{box-sizing:inherit}
 [hidden]{display:none!important}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+html:fullscreen{overflow-y:auto}
 body{margin:0;background:var(--bg);color:var(--ink);font-size:17px;line-height:1.5}
 .hand{font-family:"Patrick Hand","Comic Sans MS",cursive}
 button,select,input,textarea{font:inherit;color:inherit}
@@ -41,7 +42,9 @@ button,select,input,textarea{font:inherit;color:inherit}
 .top{max-width:1500px;margin:0 auto;padding:20px 24px 12px;display:flex;flex-wrap:wrap;gap:12px 28px;align-items:end;justify-content:space-between}
 .top h1{margin:0;font-size:clamp(1.35rem,2.4vw,1.85rem);line-height:1.15;letter-spacing:-.01em;max-width:28ch}
 .top p{margin:4px 0 0;color:var(--muted);font-size:.95rem}
-.ident{display:flex;gap:10px;flex-wrap:wrap}
+.ident{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.fsbtn{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--ink);background:var(--panel);color:var(--ink);border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;min-height:38px}
+.fsbtn svg{flex:0 0 18px}
 .ident label{display:flex;flex-direction:column;font-size:.8rem;color:var(--muted)}
 .ident input{border:1.5px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 9px;width:12rem;font-size:1rem}
 .ident input.short{width:6rem}
@@ -217,6 +220,7 @@ dialog::backdrop{background:rgba(8,24,40,.55)}
   <div class="ident">
     <label>Nom<input id="nom" autocomplete="off"></label>
     <label>Classe<input id="classe" class="short" value="4e" autocomplete="off"></label>
+    <button class="fsbtn noprint" id="fsBtn" type="button" hidden><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path id="fsIcon" d="M2 6V2h4M12 2h4v4M16 12v4h-4M6 16H2v-4"/></svg><span id="fsLabel">Plein écran</span></button>
   </div>
 </header>
 
@@ -1073,6 +1077,27 @@ document.getElementById("teachOn").addEventListener("click",()=>{T.on=true;teach
 document.getElementById("fillAll").addEventListener("click",()=>{
   T.on=true;T.answer=true;zoomTo("monde");teacherGoto(7);window.scrollTo({top:0,behavior:reduce?"auto":"smooth"});
 });
+
+/* ---------- Plein écran ---------- */
+(function(){
+  const btn=document.getElementById("fsBtn"),lab=document.getElementById("fsLabel"),ico=document.getElementById("fsIcon");
+  const root=document.documentElement;
+  const req=root.requestFullscreen||root.webkitRequestFullscreen;
+  const can=!!(req&&(document.fullscreenEnabled||document.webkitFullscreenEnabled));
+  let framed=false;try{framed=window.self!==window.top;}catch(e){framed=true;}
+  const cur=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  if(!can&&!framed)return; // déjà seule dans l'onglet, sans plein écran possible (iPhone) : pas de bouton
+  btn.hidden=false;
+  if(!can)lab.textContent="Ouvrir en grand";
+  const sync=()=>{const on=!!cur();lab.textContent=on?"Quitter le plein écran":(can?"Plein écran":"Ouvrir en grand");
+    ico.setAttribute("d",on?"M6 2v4H2M16 6h-4V2M12 16v-4h4M2 12h4v4":"M2 6V2h4M12 2h4v4M16 12v4h-4M6 16H2v-4");};
+  btn.addEventListener("click",()=>{
+    if(cur()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return;}
+    if(can){try{const r=req.call(root);if(r&&r.catch)r.catch(()=>window.open(location.href,"_blank"));}catch(e){window.open(location.href,"_blank");}}
+    else window.open(location.href,"_blank");
+  });
+  document.addEventListener("fullscreenchange",sync);document.addEventListener("webkitfullscreenchange",sync);
+})();
 
 renderAll();
 })();
