@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Croquis : des villes inégalement connectées à la mondialisation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#e9f1f4; --ink:#15314b; --muted:#4c667d; --panel:#ffffff; --line:#c3d6df;
+  --chip:#e4eef3; --accent:#1f4e8c; --on-accent:#ffffff;
+  --ok:#1d7546; --okbg:#e2f3e9; --warn:#a33d17; --warnbg:#fbe8e0; --focus:#e89a10;
+  font-family:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1a25; --ink:#e1ecf3; --muted:#9bb2c4; --panel:#142636; --line:#29445b;
+    --chip:#1c3448; --accent:#8db6ee; --on-accent:#0d1a25;
+    --ok:#6cd29a; --okbg:#153827; --warn:#ffa784; --warnbg:#41231a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1a25; --ink:#e1ecf3; --muted:#9bb2c4; --panel:#142636; --line:#29445b;
+  --chip:#1c3448; --accent:#8db6ee; --on-accent:#0d1a25;
+  --ok:#6cd29a; --okbg:#153827; --warn:#ffa784; --warnbg:#41231a;
+}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-size:17px;line-height:1.5}
+.hand{font-family:"Patrick Hand","Comic Sans MS",cursive}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+/* En-tête */
+.top{max-width:1500px;margin:0 auto;padding:20px 24px 12px;display:flex;flex-wrap:wrap;gap:12px 28px;align-items:end;justify-content:space-between}
+.top h1{margin:0;font-size:clamp(1.35rem,2.4vw,1.85rem);line-height:1.15;letter-spacing:-.01em;max-width:28ch}
+.top p{margin:4px 0 0;color:var(--muted);font-size:.95rem}
+.ident{display:flex;gap:10px;flex-wrap:wrap}
+.ident label{display:flex;flex-direction:column;font-size:.8rem;color:var(--muted)}
+.ident input{border:1.5px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 9px;width:12rem;font-size:1rem}
+.ident input.short{width:6rem}
+
+.steps{max-width:1500px;margin:0 auto;padding:0 24px 14px;display:flex;gap:6px;list-style:none;overflow-x:auto}
+.steps li{flex:1 1 0;min-width:84px;font-size:.78rem;color:var(--muted);border-top:4px solid var(--line);padding-top:5px;white-space:nowrap}
+.steps li.cur{color:var(--ink);border-color:var(--accent);font-weight:700}
+.steps li.done{border-color:var(--ok);color:var(--ink)}
+
+.layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(310px,1fr);gap:20px;padding:0 24px 28px;max-width:1500px;margin:0 auto;align-items:start}
+@media (max-width:940px){.layout{grid-template-columns:1fr;padding:0 12px 20px}.top,.steps{padding-left:12px;padding-right:12px}}
+
+/* La feuille (toujours "papier") */
+.sheet{background:#fff;color:#15314b;border:1px solid #b5cbd5;border-top:4px solid #e4673f;border-radius:4px;padding:12px 14px 14px;box-shadow:0 18px 30px -24px rgba(16,48,78,.55)}
+.printhead{display:none;justify-content:space-between;font-weight:700;margin-bottom:8px}
+.titre{display:flex;gap:10px;align-items:baseline;border-bottom:1.5px solid #15314b;padding:2px 2px 8px;margin-bottom:8px;font-size:1.35rem}
+.titre .lab-t{font-weight:700;font-family:"Patrick Hand",cursive}
+.dots{flex:1;border-bottom:2px dotted #7aa9bd;min-height:1.4em}
+.filled{font-family:"Patrick Hand",cursive;color:#1f4e8c}
+.tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.tools .sep{flex:1}
+.zb{border:1.5px solid #b5cbd5;background:#f2f8fa;color:#15314b;border-radius:999px;padding:4px 12px;font-size:.88rem;cursor:pointer;min-height:34px}
+.zb[aria-pressed="true"]{background:#15314b;color:#fff;border-color:#15314b}
+.docbtn{border:1.5px solid #1f4e8c;background:#fff;color:#1f4e8c;border-radius:8px;padding:5px 12px;font-weight:700;cursor:pointer;min-height:34px}
+.mapbox{border:1.5px solid #15314b;overflow:hidden;background:#cbe9f0}
+#map{display:block;width:100%;height:auto;touch-action:manipulation;cursor:crosshair;user-select:none;-webkit-user-select:none}
+#map .t{cursor:pointer;outline:none}
+#map .t:focus{stroke:#e89a10;stroke-width:3}
+.lab{font-family:"Patrick Hand",cursive;font-size:calc(18px * var(--z,1));fill:#15314b;paint-order:stroke;stroke:#fff;stroke-width:calc(3.5px * var(--z,1));stroke-linejoin:round;pointer-events:none}
+.lab-meg{font-family:"Patrick Hand",cursive;font-size:calc(17px * var(--z,1));fill:#1f4e8c;paint-order:stroke;stroke:#fff;stroke-width:calc(3.5px * var(--z,1));stroke-linejoin:round;pointer-events:none}
+.lab-oce{font-family:"Patrick Hand",cursive;font-size:calc(19px * var(--z,1));fill:#2a7fa6;font-style:italic;pointer-events:none}
+.lab-zone{font-family:"Atkinson Hyperlegible",sans-serif;font-weight:700;font-size:calc(14px * var(--z,1));fill:#1f4e8c;pointer-events:none}
+.lab-node{font-family:"Atkinson Hyperlegible",sans-serif;font-weight:700;font-size:calc(12px * var(--z,1));fill:#15314b;paint-order:stroke;stroke:#fff;stroke-width:calc(3px * var(--z,1));pointer-events:none}
+.blink{animation:blink .7s ease-out 1 forwards}
+@keyframes blink{0%{opacity:1}100%{opacity:0}}
+
+.legend{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid #15314b;border-top:none}
+.lgcol{padding:10px 14px}
+.lgcol+.lgcol{border-left:1.5px solid #15314b}
+.lgt{font-family:"Patrick Hand",cursive;font-size:1.25rem;display:flex;gap:6px;align-items:baseline;margin-bottom:6px}
+.lgr{display:flex;align-items:center;gap:10px;min-height:36px;font-family:"Patrick Hand",cursive;font-size:1.15rem}
+.lgr svg{flex:0 0 40px}
+.lgr .dots,.lgt .dots{min-width:6rem}
+.legend select{font-family:"Atkinson Hyperlegible",sans-serif;font-size:.9rem;border:1.5px solid #1f4e8c;border-radius:6px;padding:4px 6px;background:#f2f8fa;color:#15314b;max-width:100%;flex:1}
+.legend select.bad{border-color:#a33d17;background:#fbe8e0}
+@media (max-width:620px){.legend{grid-template-columns:1fr}.lgcol+.lgcol{border-left:none;border-top:1.5px solid #15314b}}
+
+/* Départ : problématique d'abord, carte vierge ensuite */
+.layout.start{grid-template-columns:1fr;max-width:1100px}
+.layout.start .panel{order:-1;position:static}
+.layout.start .levels{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.problem{font-size:clamp(1.3rem,2.6vw,1.75rem);line-height:1.25;margin:0 0 10px;padding:14px 16px;border:2px solid var(--ink);border-radius:8px}
+.docs3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:10px 0 6px}
+.docread{text-align:left;border:1.5px solid var(--line);background:var(--chip);border-radius:10px;padding:10px 12px;cursor:pointer}
+.docread b{display:block}
+.docread span{font-size:.86rem;color:var(--muted)}
+.docread.read{border-color:var(--ok);background:var(--okbg)}
+.docread.read b::after{content:"  ✓ lu";color:var(--ok)}
+.copy{background:var(--chip);border-radius:8px;padding:12px 14px;margin-top:12px}
+.copy ul{margin:6px 0 0;padding-left:1.1rem;font-size:.93rem}
+/* Barre enseignant */
+.tbar{display:none;max-width:1500px;margin:0 auto 12px;padding:8px 24px;gap:6px;flex-wrap:wrap;align-items:center;font-size:.88rem}
+.tbar.on{display:flex}
+.tbar b{margin-right:4px}
+.tbar button,.tbar select{border:1.5px solid var(--accent);background:var(--panel);border-radius:999px;padding:4px 11px;cursor:pointer;min-height:34px}
+.tbar button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.tbar label{display:inline-flex;gap:6px;align-items:center;margin-left:6px}
+@media (max-width:940px){.tbar{padding:8px 12px}}
+table.bar{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:4px}
+table.bar td{padding:3px 0;border-bottom:1px solid var(--line);vertical-align:top}
+table.bar td:last-child{text-align:right;white-space:nowrap;padding-left:8px}
+
+/* Panneau consignes */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px 20px 22px;position:sticky;top:12px}
+.panel h2{margin:0 0 8px;font-size:1.3rem;line-height:1.25}
+.panel p{margin:0 0 10px}
+.where{color:var(--muted);font-size:.85rem;margin-bottom:2px}
+.def{border-left:3px solid var(--accent);padding:2px 0 2px 12px;margin:12px 0;font-size:.95rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip{border:1.5px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:6px 13px;cursor:pointer;min-height:40px;text-align:left;line-height:1.2}
+.chip small{display:block;font-size:.72rem;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.chip[aria-pressed="true"] small{color:var(--on-accent);opacity:.85}
+.chip.done{opacity:.5;text-decoration:line-through;cursor:default}
+.chip.bad{border-color:var(--warn);background:var(--warnbg);color:var(--ink)}
+.chip.good{border-color:var(--ok);background:var(--okbg);color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.btn{border:none;background:var(--ink);color:var(--panel);border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer;min-height:44px}
+.btn.alt{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.fb{margin-top:14px;padding:10px 12px;border-radius:8px;border-left:4px solid var(--accent);background:var(--chip);font-size:.95rem}
+.fb:empty{display:none}
+.fb.ok{background:var(--okbg);border-color:var(--ok)}
+.fb.err{background:var(--warnbg);border-color:var(--warn)}
+.levels{display:grid;gap:10px;margin:14px 0}
+.lvl{display:block;text-align:left;border:1.5px solid var(--line);background:var(--chip);border-radius:10px;padding:12px 14px;cursor:pointer}
+.lvl b{display:block;font-size:1.05rem}
+.lvl span{font-size:.88rem;color:var(--muted)}
+.lvl[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.q{margin:16px 0;padding-top:12px;border-top:1px solid var(--line)}
+.q p{font-weight:700}
+.opts{display:grid;gap:7px}
+.opt{text-align:left;border:1.5px solid var(--line);background:var(--chip);border-radius:8px;padding:8px 11px;cursor:pointer}
+.opt[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.opt.good{border-color:var(--ok);background:var(--okbg)}
+.opt.bad{border-color:var(--warn);background:var(--warnbg)}
+.fiche{background:var(--chip);border-radius:8px;padding:12px 14px;font-size:.93rem}
+.fiche svg{display:block;margin-top:8px;max-width:100%}
+.bilan{line-height:2.1}
+.bilan select{border:1.5px solid var(--accent);border-radius:6px;padding:2px 4px;background:var(--panel)}
+.bilan select.good{border-color:var(--ok);background:var(--okbg)}
+.bilan select.bad{border-color:var(--warn);background:var(--warnbg)}
+textarea{width:100%;min-height:9rem;border:1.5px solid var(--line);border-radius:8px;padding:10px;background:var(--panel)}
+.check{list-style:none;padding:0;margin:8px 0;font-size:.92rem}
+.check li::before{content:"○ ";color:var(--muted)}
+.check li.on::before{content:"● ";color:var(--ok)}
+.score{display:flex;align-items:baseline;gap:10px;margin:8px 0}
+.score b{font-size:2.4rem;line-height:1}
+table.det{width:100%;border-collapse:collapse;font-size:.9rem;margin:8px 0}
+table.det td{padding:4px 0;border-bottom:1px solid var(--line)}
+table.det td:last-child{text-align:right}
+
+/* Espace enseignant */
+.teacher{max-width:1500px;margin:0 auto 30px;padding:0 24px}
+.teacher details{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 18px}
+.teacher summary{cursor:pointer;font-weight:700}
+.teacher .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;font-size:.93rem}
+.teacher h3{font-size:1rem;margin:14px 0 4px}
+.teacher ul{margin:0;padding-left:1.1rem}
+
+/* Documents */
+dialog{border:none;border-radius:12px;padding:0;max-width:min(920px,94vw);width:100%;background:#fff;color:#15314b}
+dialog::backdrop{background:rgba(8,24,40,.55)}
+.dhead{display:flex;gap:8px;align-items:center;padding:12px 14px;border-bottom:1px solid #d4e3ea;flex-wrap:wrap}
+.dhead .tab{border:1.5px solid #b5cbd5;background:#f2f8fa;border-radius:999px;padding:5px 12px;cursor:pointer;color:#15314b}
+.dhead .tab[aria-selected="true"]{background:#15314b;color:#fff;border-color:#15314b}
+.dhead .x{margin-left:auto;border:none;background:none;font-size:1.6rem;cursor:pointer;color:#15314b;line-height:1;min-width:40px;min-height:40px}
+.dbody{padding:12px 16px 16px;max-height:80vh;overflow:auto}
+.dbody h3{margin:0 0 8px;color:#c4472a;font-size:1.1rem}
+.dbody svg{display:block;width:100%;height:auto;border:1px solid #b5cbd5}
+.dtab{width:100%;border-collapse:collapse;font-size:.93rem}
+.dtab th,.dtab td{border:1px solid #b5cbd5;padding:7px 9px;text-align:left;vertical-align:top}
+.dtab th{background:#e4f3f7}
+.dtab tr.known td{color:#4c667d;font-style:italic}
+.dsrc{font-size:.8rem;color:#4c667d;margin-top:6px}
+.shlist{display:grid;gap:8px;margin:12px 0}
+.shrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.shrow .chip{min-width:9.5rem}
+.gm{color:var(--accent);font-weight:700;font-size:.9rem;text-underline-offset:3px}
+.gm.seen::after{content:" ✓";color:var(--ok)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.dleg{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:8px;font-size:.92rem;align-items:center}
+.dleg span{display:inline-flex;gap:8px;align-items:center}
+
+@media (prefers-reduced-motion:reduce){.blink{animation:none}}
+@media print{
+  body{background:#fff;font-size:12pt}
+  .top,.steps,.panel,.tools,.teacher,.tbar,.noprint{display:none!important}
+  .layout{display:block;padding:0}
+  .sheet{box-shadow:none;border:none;padding:0}
+  .printhead{display:flex}
+  .legend select{border:none;appearance:none;background:none}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <h1>Des villes inégalement connectées à la mondialisation</h1>
+    <p>Géographie 4e. Construis ton croquis étape par étape.</p>
+  </div>
+  <div class="ident">
+    <label>Nom<input id="nom" autocomplete="off"></label>
+    <label>Classe<input id="classe" class="short" value="4e" autocomplete="off"></label>
+  </div>
+</header>
+
+<ol class="steps" id="steps" aria-label="Progression"></ol>
+
+<div class="tbar noprint" id="tbar" role="region" aria-label="Mode enseignant"></div>
+
+<main class="layout" id="layout">
+  <section class="sheet" aria-label="Croquis">
+    <div class="printhead"><span id="pNom">NOM :</span><span id="pClasse">Classe :</span></div>
+    <div class="titre"><span class="lab-t">Titre :</span><span id="mapTitle" class="dots"></span></div>
+    <div class="tools">
+      <span style="font-size:.85rem;color:#4c667d">Zoom</span>
+      <button class="zb" data-z="monde" aria-pressed="true">Monde</button>
+      <button class="zb" data-z="amn" aria-pressed="false">Amérique du Nord</button>
+      <button class="zb" data-z="eur" aria-pressed="false">Europe</button>
+      <button class="zb" data-z="asie" aria-pressed="false">Asie orientale</button>
+      <span class="sep"></span>
+      <button class="docbtn" id="openDocs">Documents</button>
+    </div>
+    <div class="mapbox"><svg id="map" role="img" aria-label="Carte du monde à compléter" xmlns="http://www.w3.org/2000/svg"></svg></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <aside class="panel" id="panel" aria-live="polite"></aside>
+</main>
+
+<section class="teacher noprint">
+  <details>
+    <summary>Espace enseignant</summary>
+    <form id="tlogin" class="row" style="margin-top:10px" autocomplete="off">
+      <label for="tcode" style="font-size:.93rem">Code enseignant</label>
+      <input id="tcode" type="password" style="border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--panel);width:10rem">
+      <button class="btn" type="submit">Déverrouiller</button>
+      <span id="tmsg" role="status" style="font-size:.9rem;color:var(--warn)"></span>
+    </form>
+    <div class="cols" id="tcontent" hidden>
+      <div>
+        <h3>Objectifs</h3>
+        <ul>
+          <li>Thème 1 : l'urbanisation du monde. Des villes inégalement connectées aux réseaux de la mondialisation.</li>
+          <li>Hiérarchiser les villes (villes globales, métropoles mondiales, villes en marge).</li>
+          <li>Situer les mégalopoles et les flux majeurs entre les pôles de la Triade.</li>
+          <li>Localiser des villes en déclin (shrinking cities) : même dans les pays riches, toutes les villes ne profitent pas de la mondialisation. Detroit est étudiée dans une activité à part et sert ici de repère.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Compétences travaillées</h3>
+        <ul>
+          <li>Se repérer dans l'espace : nommer et localiser les grands repères.</li>
+          <li>Réaliser une production cartographique (croquis, légende organisée).</li>
+          <li>Analyser et comprendre un document cartographique.</li>
+          <li>Utiliser le numérique : manipuler une carte interactive, zoomer, valider ; chercher une localisation sur Google Maps et la reporter sur un fond de carte.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Différenciation</h3>
+        <ul>
+          <li>Pas à pas : documents en accès direct, indices visibles, nombre de réponses attendues, bilan à 2 choix.</li>
+          <li>Standard : indices après une erreur, bilan à 3 choix.</li>
+          <li>Expert : aucun indice, pièges mégapole / mégalopole, documents à −1 point, bilan rédigé.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Voir chaque étape</h3>
+        <p style="margin:0 0 6px">Ouvre n'importe quelle étape : les étapes précédentes sont déjà remplies. Une barre de navigation apparaît alors en haut de la page.</p>
+        <div class="row" style="margin-top:6px"><button class="btn" id="teachOn">Passer en mode enseignant</button><button class="btn alt" id="fillAll">Carte corrigée complète</button></div>
+      </div>
+      <div>
+        <h3>Barème de l'activité en ligne (/20, formatif)</h3>
+        <table class="bar">
+          <tr><td>1. Repérer (13 villes)</td><td>4 pts, −0,25 par erreur</td></tr>
+          <tr><td>2. Hiérarchiser</td><td>3 pts, −1 par vérification fausse</td></tr>
+          <tr><td>3. Mégalopoles</td><td>3 pts, −1 par vérification fausse</td></tr>
+          <tr><td>4. Flux</td><td>3 pts, −1 par vérification fausse</td></tr>
+          <tr><td>5. Villes en déclin</td><td>3 pts, −0,25 par localisation fausse, −0,5 par réponse fausse à la question finale</td></tr>
+          <tr><td>6. Habiller</td><td>4 pts, −0,5 par élément faux (−2 max par vérification)</td></tr>
+          <tr><td>Expert : documents rouverts pendant l'activité</td><td>−1 pt (une seule fois)</td></tr>
+        </table>
+        <p style="font-size:.85rem;margin:6px 0 0">Note arrondie au demi-point, jamais négative par étape. Positionnement : 17 et plus TBM, 13 à 16,5 MS, 9 à 12,5 MF, moins de 9 MI. Le bilan n'est pas noté.</p>
+      </div>
+      <div>
+        <h3>Grille proposée pour la copie manuscrite (/20)</h3>
+        <table class="bar">
+          <tr><td>Titre recopié</td><td>1</td></tr>
+          <tr><td>13 métropoles bien placées et nommées</td><td>5</td></tr>
+          <tr><td>Hiérarchie respectée (villes globales / autres métropoles)</td><td>2</td></tr>
+          <tr><td>3 mégalopoles</td><td>2</td></tr>
+          <tr><td>3 flux majeurs à double flèche</td><td>2</td></tr>
+          <tr><td>Detroit et les 5 autres villes en déclin (losange noir)</td><td>2</td></tr>
+          <tr><td>4 océans nommés</td><td>2</td></tr>
+          <tr><td>Légende organisée en 2 parties, figurés identiques à la carte</td><td>3</td></tr>
+          <tr><td>Soin, couleurs, écriture lisible</td><td>1</td></tr>
+        </table>
+      </div>
+    </div>
+  </details>
+</section>
+
+<dialog id="docs" aria-label="Documents">
+  <div class="dhead">
+    <button class="tab" data-d="1" aria-selected="true">Doc 1. Les villes mondiales</button>
+    <button class="tab" data-d="2" aria-selected="false">Doc 2. Les mégalopoles</button>
+    <button class="tab" data-d="3" aria-selected="false">Doc 3. Les flux</button>
+    <button class="tab" data-d="4" aria-selected="false">Doc 4. Villes en déclin</button>
+    <button class="x" id="closeDocs" aria-label="Fermer">×</button>
+  </div>
+  <div class="dbody" id="dbody"></div>
+</dialog>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- Projection Natural Earth ---------- */
+const W=1200, PAD=16;
+function neRaw(lon,lat){
+  const l=lat*Math.PI/180,l2=l*l,l4=l2*l2,lam=lon*Math.PI/180;
+  return [lam*(0.8707-0.131979*l2+l4*(-0.013791+l4*(0.003971*l2-0.001529*l4))),
+          l*(1.007226+l2*(0.015085+l4*(-0.044475+0.028874*l2-0.005916*l4)))];
+}
+const K=(W-2*PAD)/(2*neRaw(180,0)[0]);
+const YT=neRaw(0,84)[1], YB=neRaw(0,-58)[1];
+const H=Math.round((YT-YB)*K+2*PAD);
+const ne=(lon,lat)=>{const r=neRaw(lon,lat);return [W/2+r[0]*K, PAD+(YT-r[1])*K];};
+const f=n=>Math.round(n*10)/10;
+function poly(pts,close=true){return "M"+pts.map(p=>{const q=ne(p[0],p[1]);return f(q[0])+","+f(q[1]);}).join("L")+(close?"Z":"");}
+
+/* ---------- Fond de carte simplifié (lon, lat) ---------- */
+const LAND={
+na:[[-165,68],[-156,71.3],[-140,69.6],[-128,70],[-115,68.5],[-95,68],[-85,69.5],[-82,66],[-88,64],[-94,59],[-92,57],[-82,55],[-79,52],[-77,56],[-77,60],[-72,62],[-65,60],[-61,56],[-56,52],[-60,50],[-66,49],[-64,47],[-60,46],[-66,44],[-70,43],[-70,41.5],[-74,40.6],[-76,38],[-76,35],[-81,31],[-80,27],[-80.5,25.3],[-82,27],[-83,29.5],[-86,30.4],[-90,29],[-94,29.5],[-97,27.5],[-97.5,24],[-97,21],[-94.5,18.3],[-91,18.8],[-90.5,21],[-87,21.5],[-88,17],[-84,15.5],[-83.5,11],[-81.5,9],[-79.5,9.4],[-77.5,8.5],[-78.5,7.5],[-80,7.5],[-81,8],[-85.5,10],[-86,12],[-91.5,14],[-94,16],[-97,15.8],[-102,17.8],[-105.5,20.5],[-105.5,22.8],[-109,25.5],[-112.7,31.5],[-114.7,31.5],[-112,28],[-110,24],[-112,24.8],[-114.5,27.8],[-117,32.5],[-120.5,34.5],[-122.5,37.5],[-124,40.5],[-124,46],[-124.7,48.4],[-127,50.5],[-130,54],[-133,57],[-137,59],[-141,60],[-146,61],[-152,59],[-158,57],[-162,55.5],[-164,54.5],[-160,56],[-157,58.5],[-162,60],[-165,62],[-164,64],[-168,65.6],[-162,66.5]],
+gr:[[-73,78],[-60,82],[-30,83.5],[-20,81],[-18,76],[-22,70],[-30,68],[-40,65],[-43,60],[-48,61],[-52,65],[-54,69],[-58,75],[-68,76.5]],
+baf:[[-80,73.6],[-71,70.5],[-67,69.2],[-61.8,66.6],[-63,65],[-65.5,62.8],[-71,62.8],[-74,64.7],[-73,68],[-78,70],[-88,70.5],[-89,73]],
+vic:[[-118,71],[-115,73.5],[-105,73.6],[-101,70],[-110,68.8],[-118,69.5]],
+ell:[[-90,76.5],[-80,76.2],[-75,79],[-62,82],[-75,83],[-90,81.5],[-92,78]],
+sa:[[-77.5,8.5],[-75.5,10.8],[-72,12],[-71.5,10.5],[-69,11.6],[-64,10.7],[-61,10.5],[-59,8],[-55,6],[-51.5,4.5],[-50,1],[-48,-1],[-44,-2.5],[-39,-3.5],[-35,-5.5],[-35,-9],[-38.5,-13],[-39,-17.5],[-41,-22],[-44.5,-23.5],[-48,-26],[-48.5,-28.5],[-51,-31],[-53,-34],[-57,-35.2],[-56.8,-36.5],[-58,-38.5],[-62,-39],[-62,-41],[-65,-42],[-64,-44],[-67,-46.5],[-66,-48],[-69,-51],[-68.5,-52.5],[-71,-54],[-74,-52.5],[-75.5,-48],[-74,-44],[-73.5,-39],[-71.5,-30],[-70.5,-23],[-70.2,-18.5],[-75.5,-15],[-78,-10],[-81,-6],[-81,-4.5],[-80,-2],[-80.5,0],[-79,1.5],[-77.5,4],[-77.5,6.5]],
+cub:[[-85,21.9],[-82,23.1],[-77,22],[-74.2,20.2],[-77.5,19.9],[-78.5,21.5],[-81.5,22]],
+his:[[-74.4,18.4],[-72.8,19.9],[-70,19.7],[-68.4,18.6],[-71.5,17.6]],
+ice:[[-22,64],[-24,65.5],[-22,66.5],[-16,66.5],[-13.5,65.2],[-15,64.2],[-18,63.4]],
+gb:[[-5.7,50],[1.4,51.2],[1.7,52.7],[0.2,53.5],[-1.5,55],[-2,56],[-1.8,57.6],[-3,58.6],[-5,58.6],[-6.2,57.5],[-5.6,56],[-4.8,54.8],[-3,54],[-3,53.4],[-4.6,53.2],[-4.2,52.3],[-5.2,51.7],[-3,51.4]],
+irl:[[-6,52.2],[-6.2,53.8],[-5.8,55.2],[-7.3,55.4],[-8.5,54.6],[-10,54.1],[-9.5,52.5],[-10.3,51.8],[-8,51.6]],
+eua:[[-9.5,38.7],[-9,42.5],[-8,43.7],[-1.5,43.4],[-1.2,46],[-4.5,48],[-1.5,48.7],[1.5,50.2],[3,51.3],[4.5,52.5],[7,53.5],[8.6,54],[8.2,55.5],[8.1,57],[10.5,57.7],[10.2,56],[10.8,54.4],[13,54.3],[14.5,53.9],[18.5,54.7],[21,55.5],[21.2,57],[24,57.3],[23.6,59.1],[28,59.5],[30,60],[25,60.2],[22.5,60.5],[21.5,61.7],[25,65],[25.5,65.5],[22,65.8],[19,63.5],[17.4,62],[17.2,60.7],[18.7,59.8],[16.5,57],[14.4,56],[12.8,56],[11.8,57.8],[11,59],[10,59],[7,58],[5.5,59],[5,61],[5.5,62.5],[9,63.5],[12.5,65.5],[15,68],[17.5,69.5],[23,70.7],[28,71],[31,70],[33,69.3],[40,67.8],[35,66.3],[38,64.5],[44,66.4],[44,68.4],[53,68.5],[60,69.6],[66,69],[68.5,72.5],[73,72.5],[75,68.5],[78,72.4],[86,74.6],[96,76],[105,77.6],[113,73.6],[120,73],[130,71],[140,72.5],[150,71.5],[160,69.7],[170,70],[180,69],[180,65],[176,64.7],[178.5,62.5],[172,60],[163,59.8],[163,58],[160,54],[156.7,51],[156,57],[160,61],[155,59.3],[143,59.3],[137.5,54],[141,52.5],[140.5,48.5],[135,43.5],[130.7,42.5],[129.5,41],[128,39.5],[129.4,37],[129.3,35.2],[126.5,34.5],[126.3,37],[124.7,38],[125.3,39.6],[121.6,39],[121.5,40.8],[118,39.2],[117.6,38.5],[119,37.2],[122.5,37],[120.7,36],[119.3,34.5],[121,32],[122,30],[121.5,28],[119.5,25.5],[117,23.3],[113.8,22.4],[110.5,21],[109.6,21.6],[108,21.5],[106.5,20],[105.7,19],[107,17],[109,15.4],[109.3,12],[107,10.4],[105,8.7],[104.8,10.5],[103,10.6],[101,12.6],[99.5,10.5],[100.3,7.5],[101.3,6.8],[103.4,4.6],[104.2,1.4],[103.5,1.3],[101.4,2.8],[100.4,5.5],[98.3,8],[98.6,11.5],[97.7,16.5],[94.5,16],[94.4,19],[92.4,20.6],[91.5,22.5],[90,21.9],[88.2,21.7],[87,21.5],[86.7,20.3],[85,19.3],[82.3,17],[80.3,15.8],[80.3,13.3],[79.8,10.3],[78.2,8.9],[77.5,8.1],[76.6,9],[75.5,11.7],[74.5,14],[73.4,16.2],[72.8,19],[72.6,21.3],[70.5,20.8],[69,22.3],[70.4,22.9],[68.5,23.7],[67,24.8],[66.5,25.4],[62,25.1],[57.4,25.7],[56.5,27.1],[54,26.7],[51.5,27.9],[50.1,30.1],[48,30],[48.4,28.5],[49.6,26.8],[50.5,25.5],[51.6,24.3],[51.6,25.9],[52.5,24.2],[54.5,24.3],[56,25.5],[56.4,24.9],[57.6,23.6],[59.8,22.4],[57.8,19],[55,17],[52.2,15.6],[48.7,14],[45,12.8],[43.4,12.7],[42.7,15.6],[41.2,18.6],[39.1,21.3],[38.4,24],[35.2,28],[34.6,28.1],[34.9,29.5],[34.2,31.3],[35,32.8],[35.5,33.9],[35.9,35.5],[36,36.8],[34.5,36.8],[32.5,36.1],[30,36.2],[28,36.8],[27,37.7],[26.3,39.4],[26.2,40.6],[24,40.8],[22.9,40.5],[23.7,38],[22.5,36.4],[21.6,37.4],[21.1,38.9],[19.4,40.4],[19.5,41.8],[16.5,43.3],[14,45],[13.6,45.7],[12.3,45.3],[12.3,44.2],[13.6,43.5],[16,41.4],[18.4,40.1],[16.5,38.9],[15.7,38],[16,39.5],[15.6,40],[14,40.8],[12,41.9],[10.5,42.9],[10.2,44],[8.7,44.4],[7,43.5],[4.5,43.4],[3,43],[3.2,41.9],[0.9,41],[-0.3,39.5],[0.2,38.7],[-0.7,37.6],[-2.1,36.7],[-4.4,36.7],[-5.6,36],[-6.3,36.8],[-7.4,37.2],[-8.9,37]],
+af:[[34.2,31.3],[32.3,31.3],[30,31.5],[25,31.6],[23,32.6],[20,32],[20,30.9],[17,31],[15.5,32.3],[11,33.1],[10.2,36.8],[9.5,37.3],[8.6,36.9],[3,36.8],[-2,35.1],[-5.9,35.8],[-6.9,34],[-9.6,30.4],[-10,29],[-13,27.6],[-14.5,26.2],[-16,23.7],[-17,21],[-16,19],[-16.5,16],[-17.5,14.7],[-16.7,12.4],[-15,11],[-13.5,9.8],[-12,7.5],[-9.5,5.5],[-7.5,4.4],[-4,5.2],[-2,4.7],[1,6],[3.5,6.3],[5.5,4.6],[7,4.4],[8.5,4.5],[9.7,3],[9.5,1],[9,-1],[11.8,-4.5],[13,-6],[13.3,-9],[13.7,-11.5],[12,-14],[11.8,-17.5],[13.4,-21],[14.5,-23],[15,-27],[16.5,-28.6],[18.2,-31.6],[18.4,-34],[20,-34.8],[22.5,-34],[25.7,-34],[27,-33.5],[30,-31],[32.5,-28.6],[32.9,-26],[35.3,-24],[35.5,-21.5],[34.7,-19.8],[36.8,-17.9],[40.5,-15],[40.5,-10.5],[39.3,-7],[39,-4.7],[41,-2],[43.5,0.5],[46,2.5],[49,6],[51,10.4],[51.2,11.8],[49,11.3],[45,10.4],[43.3,11.9],[42.7,12.6],[40,15.5],[38.5,18],[37.2,21],[35.6,23.9],[33.9,26.6],[32.6,29.9],[33.6,27.8],[34.3,28],[34.9,29.5]],
+mad:[[49.3,-12],[50.4,-15.5],[49.4,-17.8],[48,-22],[47,-25],[45,-25.5],[43.6,-23.5],[44,-20],[44.4,-16.5],[46.5,-15.7],[48,-13.5]],
+jap:[[130,31.3],[131.5,31.5],[132,33.8],[135,33.5],[136.8,34.3],[139,34.7],[140.8,35.7],[141,38.3],[142,39.5],[141.4,41.4],[143.3,42],[145.5,43.3],[144,44],[141.7,45.4],[141.4,43.3],[140,42.5],[140,40.6],[139.8,39],[138.5,37.5],[136.8,37.2],[136,35.6],[133,35.5],[131,34.4],[129.7,33.2]],
+sak:[[141.7,46],[143.5,46.5],[142.8,49],[144.5,53],[142.6,54.3],[142,51]],
+sri:[[79.8,6.5],[80.5,5.9],[81.8,7.4],[81,9],[80,9.6]],
+tai:[[120.2,22.6],[120.9,21.9],[121.9,24.5],[121.5,25.3],[120.2,23.5]],
+luz:[[120,14.5],[120.6,18.4],[122.2,18.5],[122,16],[124,13],[121.5,13.8]],
+min:[[122,7],[124.5,6],[126.2,6.3],[126,9.2],[123.5,8.5]],
+bor:[[109,1.5],[110,-1.5],[111,-3],[114,-3.5],[116.5,-2.5],[117.5,0.5],[119,1],[117.8,5],[119.2,5.3],[116.5,7],[115,5],[113,3.1],[111,1.8]],
+sum:[[95.3,5.6],[97.5,5.2],[100.4,2],[103.8,-1],[106,-3],[105.8,-5.8],[104,-5],[102.3,-4],[100.3,-1],[98.6,1.7]],
+jav:[[105.2,-6.8],[106,-5.9],[110,-6.9],[112.6,-6.9],[114.4,-7.7],[110.5,-8.2],[106.5,-7.4]],
+sul:[[119.4,-5.5],[120.4,-5.5],[121,-2.5],[123,-1],[120,0.5],[124.5,1.3],[121,1.2],[119.7,0],[118.8,-2.6]],
+ng:[[131,-1.5],[134,-1],[138,-1.6],[141,-2.6],[145,-4.3],[147.5,-6],[147,-8],[150,-10.6],[146,-8],[143,-9],[141,-9.1],[138.5,-8.4],[137.5,-5],[134,-4],[132,-2.8]],
+aus:[[114,-22],[114.2,-26],[115,-34],[118,-35],[123.5,-33.9],[126,-32.3],[131,-31.5],[135,-34.8],[137.7,-33],[138,-35.6],[140,-37.8],[143.5,-38.8],[146.3,-39],[150,-37.5],[151.3,-33.8],[153.5,-28],[153,-25],[150.8,-22.5],[149,-20.5],[146.3,-18.9],[145.3,-15],[143.5,-14],[142.5,-10.7],[141.5,-13.5],[141.7,-15.5],[140.5,-17.7],[139,-17],[135.8,-15],[136.8,-12.2],[133,-11.3],[130.2,-12.5],[129.5,-15],[127.5,-14],[125,-15],[122.2,-17.5],[121,-19.6],[117,-20.6]],
+tas:[[144.6,-40.7],[148.3,-40.9],[148,-43.2],[146,-43.6]],
+nzn:[[172.7,-34.4],[174.6,-36],[175.9,-37.5],[178.5,-37.7],[177,-39.3],[176,-41.3],[174.6,-41.3],[175,-39.8],[173.8,-39.2],[174.4,-37]],
+nzs:[[172.7,-40.5],[174.3,-41.7],[173,-43.8],[171,-45.5],[169,-46.6],[166.5,-46],[168,-44],[170.5,-43]],
+nz:[[52,71.4],[56,74.5],[62,76.5],[68,77],[59,75],[56,72.5]],
+sva:[[11,78.5],[16,80],[27,80],[22,77.5],[16,76.5]]
+};
+const WATER={
+black:[[28,41.2],[28.6,43.5],[30,45.8],[31.5,46.6],[33.5,46],[32.5,45.4],[33.6,44.5],[35.5,45.1],[36.5,45.2],[38,47],[39,47.2],[38,46.3],[37.5,44.8],[39.5,43.5],[41.6,41.6],[40,41],[36,41.6],[33,42],[30,41.2]],
+casp:[[47,44.5],[49,46.5],[51.5,47],[53,46.8],[53,45.3],[51.3,44.5],[50.3,44.3],[51.3,43],[52.7,42],[53,40],[54,37.5],[51,36.8],[49,37.5],[49.5,40.5],[47.7,42.5]]
+};
+
+/* ---------- Données de l'activité ---------- */
+const CITIES=[
+ {id:"ny", name:"New York",     lon:-74,   lat:40.7,  g:true,  hint:"côte Est des États-Unis, au bord de l'Atlantique", cont:"Amérique du Nord", lab:[9,13,"start"]},
+ {id:"la", name:"Los Angeles",  lon:-118.2,lat:34,    g:false, hint:"côte Ouest des États-Unis, au bord du Pacifique", cont:"Amérique du Nord", lab:[-8,5,"end"]},
+ {id:"chi",name:"Chicago",      lon:-87.6, lat:41.9,  g:false, hint:"au bord des Grands Lacs, au centre-nord des États-Unis", cont:"Amérique du Nord", lab:[-8,-4,"end"]},
+ {id:"sp", name:"São Paulo",    lon:-46.6, lat:-23.5, g:false, hint:"sud-est du Brésil", cont:"Amérique du Sud", lab:[8,11,"start"]},
+ {id:"lon",name:"Londres",      lon:-0.1,  lat:51.5,  g:true,  hint:"capitale du Royaume-Uni, sur une île", cont:"Europe", lab:[-10,-5,"end"]},
+ {id:"par",name:"Paris",        lon:2.35,  lat:48.85, g:true,  hint:"capitale de la France", cont:"Europe", lab:[-10,13,"end"]},
+ {id:"mos",name:"Moscou",       lon:37.6,  lat:55.75, g:false, hint:"capitale de la Russie, à l'est de l'Europe", cont:"Europe", lab:[7,-6,"start"]},
+ {id:"joh",name:"Johannesburg", lon:28,    lat:-26.2, g:false, hint:"nord-est de l'Afrique du Sud", cont:"Afrique", lab:[8,5,"start"]},
+ {id:"mum",name:"Mumbai",       lon:72.8,  lat:19,    g:false, hint:"côte ouest de l'Inde", cont:"Asie", lab:[-8,6,"end"]},
+ {id:"sin",name:"Singapour",    lon:103.8, lat:1.35,  g:false, hint:"pointe sud de la péninsule malaise, près de l'équateur", cont:"Asie", lab:[-8,13,"end"]},
+ {id:"hk", name:"Hong Kong",    lon:114.2, lat:22.3,  g:false, hint:"littoral sud de la Chine", cont:"Asie", lab:[8,12,"start"]},
+ {id:"sha",name:"Shanghai",     lon:121.5, lat:31.2,  g:false, hint:"littoral est de la Chine, à l'embouchure du Yangzi", cont:"Asie", lab:[-8,4,"end"]},
+ {id:"tok",name:"Tokyo",        lon:139.7, lat:35.7,  g:true,  hint:"capitale du Japon", cont:"Asie", lab:[10,5,"start"]}
+];
+const byId=id=>CITIES.find(c=>c.id===id);
+const DETROIT={lon:-83,lat:42.3};
+
+const ZONES_EASY=[
+ {id:"A",lon:-74,lat:40.5,ok:true, name:"Nord-Est des États-Unis"},
+ {id:"B",lon:4,lat:49.5,ok:true, name:"Europe du Nord-Ouest"},
+ {id:"C",lon:136,lat:35,ok:true, name:"Japon"},
+ {id:"D",lon:-62,lat:-5,ok:false,name:"Amazonie",why:"une forêt très peu peuplée"},
+ {id:"E",lon:10,lat:23,ok:false,name:"Sahara",why:"un désert presque vide d'habitants"},
+ {id:"F",lon:100,lat:62,ok:false,name:"Sibérie",why:"une région froide très peu peuplée"},
+ {id:"G",lon:133,lat:-25,ok:false,name:"Centre de l'Australie",why:"un désert très peu peuplé"}
+];
+const ZONES_EXPERT=[
+ {id:"A",lon:-74,lat:40.5,ok:true, name:"Nord-Est des États-Unis"},
+ {id:"B",lon:4,lat:49.5,ok:true, name:"Europe du Nord-Ouest"},
+ {id:"C",lon:136,lat:35,ok:true, name:"Japon"},
+ {id:"D",lon:3.4,lat:6.5,ok:false,name:"Lagos",why:"Lagos est une mégapole (une très grande ville), pas une mégalopole : il n'y a pas de chapelet de grandes villes reliées entre elles"},
+ {id:"E",lon:77,lat:28.6,ok:false,name:"Delhi",why:"Delhi est une mégapole, pas une mégalopole"},
+ {id:"F",lon:-62,lat:-5,ok:false,name:"Amazonie",why:"une forêt très peu peuplée"},
+ {id:"G",lon:31.2,lat:30,ok:false,name:"Le Caire",why:"Le Caire est une mégapole, pas une mégalopole"}
+];
+const MEGA=[
+ {a:[-71,42.4],b:[-77,38.9],label:"Mégalopole américaine",lp:[-58,31],anchor:"start"},
+ {a:[-1.5,53],b:[9.2,45.5],label:"Mégalopole européenne",lp:[6,39.5],anchor:"start"},
+ {a:[140.2,36.2],b:[130.4,33.6],label:"Mégalopole japonaise",lp:[147,38.5],anchor:"start"}
+];
+const NODES={
+ NA:{name:"Amérique du Nord",lon:-80,lat:40.5},
+ EU:{name:"Europe de l'Ouest",lon:3,lat:48},
+ AO:{name:"Asie orientale",lon:122,lat:33},
+ AS:{name:"Amérique du Sud",lon:-55,lat:-14},
+ AF:{name:"Afrique australe",lon:25,lat:-23}
+};
+const pairKey=(a,b)=>[a,b].sort().join("-");
+const TRIAD=[pairKey("NA","EU"),pairKey("EU","AO"),pairKey("AO","NA")];
+const OCEAN_SLOTS=[
+ {id:"pw",lon:-140,lat:8,type:"P"},
+ {id:"at",lon:-36,lat:12,type:"A"},
+ {id:"in",lon:76,lat:-22,type:"I"},
+ {id:"pe",lon:160,lat:16,type:"P"}
+];
+const OCEAN_CHIPS=[
+ {id:"p1",name:"Océan Pacifique",type:"P"},
+ {id:"at",name:"Océan Atlantique",type:"A"},
+ {id:"in",name:"Océan Indien",type:"I"},
+ {id:"p2",name:"Océan Pacifique",type:"P"}
+];
+const TITLES=[
+ {t:"Des villes inégalement connectées à la mondialisation",ok:true},
+ {t:"Les plus grandes villes du monde",ok:false,why:"La carte ne classe pas les villes selon leur nombre d'habitants : Lagos ou Delhi, très peuplées, n'y figurent pas."},
+ {t:"Les capitales des pays les plus riches",ok:false,why:"New York, Shanghai ou São Paulo ne sont pas des capitales."}
+];
+const LEG_PARTS=["Une hiérarchie des villes mondiales","Des pôles reliés par des flux","Les reliefs et les climats du monde"];
+const LEG_ITEMS=["ville globale","autre métropole mondiale","ville en déclin (shrinking city)","mégalopole","flux majeur (informations, capitaux, marchandises)","capitale politique","zone agricole"];
+const LEG_OK={T1:LEG_PARTS[0],T2:LEG_PARTS[1],g:LEG_ITEMS[0],m:LEG_ITEMS[1],d:LEG_ITEMS[2],meg:LEG_ITEMS[3],fl:LEG_ITEMS[4]};
+
+const STEP_NAMES=["Départ","Repérer","Hiérarchiser","Mégalopoles","Flux","Villes en déclin","Habiller","Bilan"];
+const SHRINK=[
+ {id:"stl",name:"Saint-Louis",country:"États-Unis",lon:-90.2,lat:38.6,where:"au centre des États-Unis, au bord du Mississippi",why:"fermeture d'usines, départ des habitants vers les banlieues",pop:"857 000 (1950) → 302 000 (2020)",lab:[-8,5,"end"]},
+ {id:"pit",name:"Pittsburgh",country:"États-Unis",lon:-80,lat:40.4,where:"au nord-est des États-Unis, entre les Grands Lacs et la côte Atlantique",why:"crise de la sidérurgie (production d'acier)",pop:"677 000 (1950) → 303 000 (2020)",lab:[0,21,"middle"]},
+ {id:"liv",name:"Liverpool",country:"Royaume-Uni",lon:-3,lat:53.4,where:"port de la côte ouest de l'Angleterre, au nord-ouest de Londres",why:"déclin du port et des industries",pop:"plus de 800 000 (années 1930) → 486 000 (2021)",lab:[-5,-14,"end"]},
+ {id:"hoy",name:"Hoyerswerda",country:"Allemagne",lon:14.25,lat:51.4,where:"à l'est de l'Allemagne, près de la frontière polonaise",why:"fermeture des mines de charbon après la réunification",pop:"environ 70 000 (1980) → environ 31 000 (2020)",lab:[7,15,"start"]},
+ {id:"yub",name:"Yubari",country:"Japon",lon:141.97,lat:43.05,where:"sur l'île d'Hokkaido, au nord du Japon",why:"fermeture des mines de charbon",pop:"plus de 110 000 (1960) → environ 7 000 (2020)",lab:[9,-8,"start"]}
+];
+const TOL={guide:28,std:19,expert:13};
+const BASE=[0,4,3,3,3,3,4];
+const WEIGHT=[0,0.25,1,1,1,0.5,0.5];
+
+/* ---------- État ---------- */
+let S;
+function freshState(){
+  return {level:null,step:0,err:[0,0,0,0,0,0,0],placed:{},sel:null,globals:new Set(),wrongG:null,globalsDone:false,
+    zonesSel:new Set(),wrongZ:null,megaDone:false,links:new Set(),pending:null,fluxDone:false,triadeOK:false,
+    q:{},detroitDone:false,shrink:{},shSel:null,oceans:{},oceanSel:null,title:null,legend:{},legBad:{},oceanBad:{},habDone:false,
+    docPenalty:false,teacher:false,docsRead:new Set()};
+}
+S=freshState();
+const zones=()=>S.level==="expert"?ZONES_EXPERT:ZONES_EASY;
+
+/* ---------- SVG ---------- */
+const NS="http://www.w3.org/2000/svg";
+function E(t,a,p){const e=document.createElementNS(NS,t);if(a)for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+function txt(parent,x,y,s,cls,anchor){const t=E("text",{x:f(x),y:f(y),class:cls,"text-anchor":anchor||"start"},parent);t.textContent=s;return t;}
+
+function sphere(){const p=[];for(let la=84;la>=-58;la-=2)p.push([180,la]);for(let la=-58;la<=84;la+=2)p.push([-180,la]);return poly(p);}
+function drawBase(svg,pfx){
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  const defs=E("defs",{},svg);
+  const mk=E("marker",{id:pfx+"ah",viewBox:"0 0 10 10",refX:"5",refY:"5",markerWidth:"3.2",markerHeight:"3.2",orient:"auto-start-reverse"},defs);
+  E("path",{d:"M0,0L10,5L0,10z",fill:"#d7332a"},mk);
+  E("rect",{x:0,y:0,width:W,height:H,fill:"#e4f3f7"},svg);
+  E("path",{d:sphere(),fill:"#cbe9f0",stroke:"#7fbfd3","stroke-width":"1.2"},svg);
+  const eq=[];for(let lo=-180;lo<=180;lo+=10)eq.push([lo,0]);
+  E("path",{d:poly(eq,false),fill:"none",stroke:"#9ccfde","stroke-width":"1","stroke-dasharray":"5 6"},svg);
+  const land=E("g",{fill:"#fff",stroke:"#4f9fbb","stroke-width":"1.1","stroke-linejoin":"round"},svg);
+  for(const k in LAND)E("path",{d:poly(LAND[k])},land);
+  for(const k in WATER)E("path",{d:poly(WATER[k]),fill:"#cbe9f0",stroke:"#4f9fbb","stroke-width":"1"},svg);
+}
+
+/* Figurés réutilisables */
+function drawCityMark(g,c,big){
+  const [x,y]=ne(c.lon,c.lat);
+  if(big)E("circle",{cx:f(x),cy:f(y),r:10,fill:"#f2876f","fill-opacity":".9",stroke:"#e0583b","stroke-width":"1.5"},g);
+  else E("circle",{cx:f(x),cy:f(y),r:3.8,fill:"#d7332a"},g);
+}
+function drawCityLabel(g,c){const [x,y]=ne(c.lon,c.lat);txt(g,x+c.lab[0],y+c.lab[1],c.name,"lab",c.lab[2]);}
+function drawMega(g,labels){
+  MEGA.forEach(m=>{
+    const a=ne(...m.a),b=ne(...m.b);
+    const d=`M${f(a[0])},${f(a[1])}L${f(b[0])},${f(b[1])}`;
+    E("path",{d,stroke:"#1f4e8c","stroke-width":"13","stroke-linecap":"round",fill:"none"},g);
+    E("path",{d,stroke:"#ffffff","stroke-opacity":".75","stroke-width":"8","stroke-linecap":"round",fill:"none"},g);
+    if(labels){const p=ne(...m.lp);txt(labels,p[0],p[1],m.label,"lab-meg",m.anchor);}
+  });
+}
+function shorten(p,toward,by){const dx=toward[0]-p[0],dy=toward[1]-p[1],d=Math.hypot(dx,dy)||1;return [p[0]+dx/d*by,p[1]+dy/d*by];}
+function drawLink(g,key,pfx,provisional){
+  const [a,b]=key.split("-");
+  const attrs={fill:"none",stroke:"#d7332a","stroke-width":provisional?"4":"5","stroke-linecap":"round"};
+  if(provisional)attrs["stroke-dasharray"]="10 6";
+  if(key===pairKey("AO","NA")){
+    // flux transpacifique : il traverse le bord de la carte
+    const s=ne(126,37),c1=ne(158,58),e1=ne(180,48);
+    const s2=ne(-180,48),c2=ne(-150,52),e2=ne(-119,38);
+    E("path",Object.assign({d:`M${f(s[0])},${f(s[1])}Q${f(c1[0])},${f(c1[1])} ${f(e1[0])},${f(e1[1])}`,"marker-start":`url(#${pfx}ah)`},attrs),g);
+    E("path",Object.assign({d:`M${f(s2[0])},${f(s2[1])}Q${f(c2[0])},${f(c2[1])} ${f(e2[0])},${f(e2[1])}`,"marker-end":`url(#${pfx}ah)`},attrs),g);
+    return;
+  }
+  let p1=ne(NODES[a].lon,NODES[a].lat),p2=ne(NODES[b].lon,NODES[b].lat);
+  const mx=(p1[0]+p2[0])/2,my=(p1[1]+p2[1])/2,dist=Math.hypot(p2[0]-p1[0],p2[1]-p1[1]);
+  const c=[mx,my-dist*0.28];
+  p1=shorten(p1,c,16);p2=shorten(p2,c,16);
+  E("path",Object.assign({d:`M${f(p1[0])},${f(p1[1])}Q${f(c[0])},${f(c[1])} ${f(p2[0])},${f(p2[1])}`,"marker-start":`url(#${pfx}ah)`,"marker-end":`url(#${pfx}ah)`},attrs),g);
+}
+function drawDetroit(g,labels){
+  const [x,y]=ne(DETROIT.lon,DETROIT.lat);
+  E("path",{d:`M${f(x)},${f(y-7)}L${f(x+7)},${f(y)}L${f(x)},${f(y+7)}L${f(x-7)},${f(y)}Z`,fill:"#111",stroke:"#fff","stroke-width":"1.2"},g);
+  if(labels)txt(labels,x+5,y-10,"Detroit","lab","start");
+}
+
+/* ---------- Carte principale ---------- */
+const map=document.getElementById("map");
+drawBase(map,"m");
+const L={};
+["zones","mega","flux","nodes","cities","detroit","oceans","labels","fx"].forEach(n=>L[n]=E("g",{},map));
+
+function renderMap(){
+  for(const k in L)L[k].innerHTML="";
+  const st=S.step;
+  // mégalopoles
+  if(S.megaDone)drawMega(L.mega,L.labels);
+  if(st===3&&!S.megaDone){
+    zones().forEach(z=>{
+      const [x,y]=ne(z.lon,z.lat),on=S.zonesSel.has(z.id),bad=S.wrongZ&&S.wrongZ.has(z.id);
+      const c=E("circle",{cx:f(x),cy:f(y),r:24,fill:on?"rgba(31,78,140,.22)":"rgba(255,255,255,.35)",stroke:bad?"#a33d17":"#1f4e8c","stroke-width":on?"2.6":"1.8","stroke-dasharray":on?"":"5 4",class:"t",tabindex:"0",role:"button","aria-label":"Zone "+z.id+(on?", choisie":"")},L.zones);
+      key(c,()=>act("zone",z.id));
+      txt(L.zones,x,y+5,z.id,"lab-zone","middle");
+    });
+  }
+  // flux
+  const pfx="m";
+  if(S.fluxDone)TRIAD.forEach(k=>drawLink(L.flux,k,pfx,false));
+  else if(st===4)S.links.forEach(k=>drawLink(L.flux,k,pfx,true));
+  if(st===4&&!S.fluxDone){
+    for(const id in NODES){
+      const n=NODES[id],[x,y]=ne(n.lon,n.lat),pend=S.pending===id;
+      const c=E("circle",{cx:f(x),cy:f(y),r:15,fill:pend?"#d7332a":"#fff",stroke:"#d7332a","stroke-width":"2.5",class:"t",tabindex:"0",role:"button","aria-label":n.name+(pend?", sélectionné":"")},L.nodes);
+      key(c,()=>act("node",id));
+      txt(L.nodes,x,y+31,n.name,"lab-node","middle");
+    }
+  }
+  // villes
+  if(st>=1){
+    CITIES.forEach((c,i)=>{
+      const [x,y]=ne(c.lon,c.lat),placed=!!S.placed[c.id];
+      if(S.globalsDone)drawCityMark(L.cities,c,c.g);
+      else if(st===2&&S.globals.has(c.id))drawCityMark(L.cities,c,true);
+      else if(placed)drawCityMark(L.cities,c,false);
+      else E("circle",{cx:f(x),cy:f(y),r:4.6,fill:"#d7332a",stroke:"#fff","stroke-width":"1.6"},L.cities);
+      if(st===2&&S.wrongG&&S.wrongG.has(c.id))E("circle",{cx:f(x),cy:f(y),r:15,fill:"none",stroke:"#a33d17","stroke-width":"2.2","stroke-dasharray":"3 3"},L.cities);
+      const active=(st===1&&!placed)||(st===2&&!S.globalsDone);
+      if(active){
+        const t=E("circle",{cx:f(x),cy:f(y),r:11,fill:"transparent",class:"t",tabindex:"0",role:"button","aria-label":st===1?"Point à identifier "+(i+1):c.name+(S.globals.has(c.id)?", ville globale":"")},L.cities);
+        key(t,()=>act("city",c.id));
+      }
+      if(placed)drawCityLabel(L.labels,c);
+    });
+  }
+  if(st>=5||S.detroitDone){drawDetroit(L.detroit,L.labels);
+    SHRINK.forEach(c=>{if(S.shrink[c.id]){const [x,y]=ne(c.lon,c.lat);
+      E("path",{d:`M${f(x)},${f(y-6)}L${f(x+6)},${f(y)}L${f(x)},${f(y+6)}L${f(x-6)},${f(y)}Z`,fill:"#111",stroke:"#fff","stroke-width":"1.2"},L.detroit);
+      txt(L.labels,x+c.lab[0],y+c.lab[1],c.name,"lab",c.lab[2]);}});}
+  // océans
+  if(st===6&&!S.habDone){
+    OCEAN_SLOTS.forEach(s=>{
+      const [x,y]=ne(s.lon,s.lat),chip=S.oceans[s.id],bad=S.oceanBad[s.id];
+      const r=E("rect",{x:f(x-62),y:f(y-15),width:124,height:28,rx:6,fill:chip?"rgba(255,255,255,.55)":"rgba(255,255,255,.3)",stroke:bad?"#a33d17":"#2a7fa6","stroke-width":"1.6","stroke-dasharray":chip?"":"4 4",class:"t",tabindex:"0",role:"button","aria-label":"Emplacement d'océan"+(chip?", "+OCEAN_CHIPS.find(o=>o.id===chip).name:"")},L.oceans);
+      key(r,()=>act("slot",s.id));
+      txt(L.oceans,x,y+5,chip?OCEAN_CHIPS.find(o=>o.id===chip).name:"…",chip?"lab-oce":"lab-zone","middle");
+    });
+  } else if(S.habDone){
+    OCEAN_SLOTS.forEach(s=>{const [x,y]=ne(s.lon,s.lat);txt(L.oceans,x,y+5,{P:"Océan Pacifique",A:"Océan Atlantique",I:"Océan Indien"}[s.type],"lab-oce","middle");});
+  }
+}
+function key(el,fn){el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();fn();}});}
+
+/* Clic sur la carte : on cherche la cible active la plus proche */
+function toSvg(ev){const pt=map.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;return pt.matrixTransform(map.getScreenCTM().inverse());}
+function targets(){
+  const st=S.step,t=[];
+  if(st===1)CITIES.forEach(c=>{if(!S.placed[c.id]){const p=ne(c.lon,c.lat);t.push({type:"city",id:c.id,x:p[0],y:p[1],r:8});}});
+  if(st===2&&!S.globalsDone)CITIES.forEach(c=>{const p=ne(c.lon,c.lat);t.push({type:"city",id:c.id,x:p[0],y:p[1],r:10});});
+  if(st===3&&!S.megaDone)zones().forEach(z=>{const p=ne(z.lon,z.lat);t.push({type:"zone",id:z.id,x:p[0],y:p[1],r:26});});
+  if(st===4&&!S.fluxDone)for(const id in NODES){const p=ne(NODES[id].lon,NODES[id].lat);t.push({type:"node",id,x:p[0],y:p[1],r:18});}
+  if(st===6&&!S.habDone)OCEAN_SLOTS.forEach(s=>{const p=ne(s.lon,s.lat);t.push({type:"slot",id:s.id,x:p[0],y:p[1],r:62});});
+  return t;
+}
+map.addEventListener("click",ev=>{
+  if(S.step===5&&!S.detroitDone){placeShrink(toSvg(ev));return;}
+  const p=toSvg(ev),sc=map.getScreenCTM().a||1,ts=targets();
+  let best=null,bd=Infinity;
+  ts.forEach(t=>{const d=Math.hypot(t.x-p.x,t.y-p.y);if(d<bd){bd=d;best=t;}});
+  if(best&&bd<=Math.max(best.r,20/sc))act(best.type,best.id);
+});
+function blinkAt(lon,lat){
+  const [x,y]=ne(lon,lat);
+  const c=E("circle",{cx:f(x),cy:f(y),r:16,fill:"none",stroke:"#a33d17","stroke-width":"3",class:"blink"},L.fx);
+  setTimeout(()=>c.remove(),750);
+}
+
+/* ---------- Zoom ---------- */
+const VIEWS={monde:[[-180,84],[180,-58]],amn:[[-128,58],[-62,18]],eur:[[-14,62],[44,34]],asie:[[94,46],[152,-4]]};
+let vb=[0,0,W,H],anim=null;
+function viewFor(z){
+  if(z==="monde")return [0,0,W,H];
+  const a=ne(...VIEWS[z][0]),b=ne(...VIEWS[z][1]);
+  let x=Math.min(a[0],b[0]),y=Math.min(a[1],b[1]),w=Math.abs(b[0]-a[0]),h=Math.abs(b[1]-a[1]);
+  const ar=W/H; if(w/h<ar){const nw=h*ar;x-=(nw-w)/2;w=nw;}else{const nh=w/ar;y-=(nh-h)/2;h=nh;}
+  return [x,y,w,h];
+}
+const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function setZ(){map.style.setProperty("--z",Math.max(.25,vb[2]/W).toFixed(3));}
+function zoomTo(z){
+  document.querySelectorAll(".zb").forEach(b=>b.setAttribute("aria-pressed",b.dataset.z===z?"true":"false"));
+  const to=viewFor(z),from=vb.slice();
+  if(anim)cancelAnimationFrame(anim);
+  if(reduce){vb=to;map.setAttribute("viewBox",vb.map(f).join(" "));setZ();return;}
+  const t0=performance.now(),D=450;
+  const stepf=now=>{const k=Math.min(1,(now-t0)/D),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    vb=from.map((v,i)=>v+(to[i]-v)*e);map.setAttribute("viewBox",vb.map(f).join(" "));setZ();
+    if(k<1)anim=requestAnimationFrame(stepf);};
+  anim=requestAnimationFrame(stepf);
+}
+document.querySelectorAll(".zb").forEach(b=>b.addEventListener("click",()=>zoomTo(b.dataset.z)));
+
+/* ---------- Légende (sur la feuille) ---------- */
+function fig(type){
+  const s=`<svg width="40" height="24" viewBox="0 0 40 24" aria-hidden="true">`;
+  if(type==="g")return s+`<circle cx="20" cy="12" r="10" fill="#f2876f" stroke="#e0583b" stroke-width="1.5"/></svg>`;
+  if(type==="m")return s+`<circle cx="20" cy="12" r="4" fill="#d7332a"/></svg>`;
+  if(type==="d")return s+`<path d="M20,4L28,12L20,20L12,12Z" fill="#111"/></svg>`;
+  if(type==="meg")return s+`<path d="M8,12L32,12" stroke="#1f4e8c" stroke-width="12" stroke-linecap="round"/><path d="M8,12L32,12" stroke="#fff" stroke-opacity=".8" stroke-width="7" stroke-linecap="round"/></svg>`;
+  if(type==="fl")return `<svg width="40" height="24" viewBox="0 0 40 24" aria-hidden="true"><path d="M9,12L31,12" stroke="#d7332a" stroke-width="4"/><path d="M2,12L11,6L11,18Z M38,12L29,6L29,18Z" fill="#d7332a"/></svg>`;
+  return "";
+}
+function legendSlot(k){
+  if(S.step===6&&!S.habDone){
+    const opts=(k==="T1"||k==="T2")?LEG_PARTS:LEG_ITEMS;
+    const v=S.legend[k]||"";
+    return `<select data-leg="${k}" class="${S.legBad[k]?"bad":""}" aria-label="Choisir la légende"><option value="">Choisir…</option>${opts.map(o=>`<option ${o===v?"selected":""}>${o}</option>`).join("")}</select>`;
+  }
+  if(S.habDone)return `<span class="filled">${LEG_OK[k]}</span>`;
+  return `<span class="dots"></span>`;
+}
+function renderLegend(){
+  const lg=document.getElementById("legend");
+  lg.innerHTML=`<div class="lgcol"><div class="lgt">1. ${legendSlot("T1")}</div>
+    <div class="lgr">${fig("g")}${legendSlot("g")}</div>
+    <div class="lgr">${fig("m")}${legendSlot("m")}</div>
+    <div class="lgr">${fig("d")}${legendSlot("d")}</div></div>
+    <div class="lgcol"><div class="lgt">2. ${legendSlot("T2")}</div>
+    <div class="lgr">${fig("meg")}${legendSlot("meg")}</div>
+    <div class="lgr">${fig("fl")}${legendSlot("fl")}</div></div>`;
+  lg.querySelectorAll("select").forEach(s=>s.addEventListener("change",()=>{S.legend[s.dataset.leg]=s.value;S.legBad[s.dataset.leg]=false;s.classList.remove("bad");}));
+  const mt=document.getElementById("mapTitle");
+  if(S.title){mt.textContent=S.title;mt.className="filled";}else{mt.textContent="";mt.className="dots";}
+}
+
+/* ---------- Progression ---------- */
+function renderSteps(){
+  document.getElementById("steps").innerHTML=STEP_NAMES.map((n,i)=>`<li class="${i===S.step?"cur":i<S.step?"done":""}" ${i===S.step?'aria-current="step"':""}>${i===0?"":i+". "}${n}</li>`).join("");
+}
+function stepScore(i){return Math.max(0,BASE[i]-S.err[i]*WEIGHT[i]);}
+function total(){let t=0;for(let i=1;i<=6;i++)t+=stepScore(i);if(S.docPenalty)t-=1;return Math.max(0,Math.round(t*2)/2);}
+
+/* ---------- Panneau ---------- */
+const panel=document.getElementById("panel");
+function fb(kind,html){const el=document.getElementById("fb");if(!el)return;el.className="fb "+kind;el.innerHTML=html;}
+const head=(n,t)=>`<div class="where">Étape ${n} sur 6</div><h2>${t}</h2>`;
+const nextBtn=(label)=>`<div class="row"><button class="btn" id="next">${label||"Étape suivante"}</button></div>`;
+const docLink=n=>S.level!=="expert"?`<button class="btn alt" data-doc="${n}">Voir le document ${n}</button>`:"";
+
+function go(n){S.step=n;S.sel=null;S.shSel=null;S.oceanSel=null;S.pending=null;renderAll();
+  if(window.innerWidth<940&&n>0)panel.scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});}
+function renderAll(){document.getElementById("layout").classList.toggle("start",S.step===0);renderTbar();renderSteps();renderMap();renderLegend();renderPanel();
+  document.getElementById("openDocs").textContent=S.level==="expert"&&!S.docPenalty&&!S.teacher&&S.step>=1&&S.step<=6?"Documents (−1 point)":"Documents";}
+
+function renderPanel(){
+  const st=S.step,lv=S.level;
+  let h="";
+  if(st===0){
+    const R=S.docsRead,allRead=R.size===4;
+    const docDesc={1:["Doc 1. Les villes mondiales","Quelles villes sont représentées ? Quels sont les deux figurés ?"],2:["Doc 2. Les mégalopoles du monde","Combien y a-t-il de mégalopoles ? Sur quels continents ?"],3:["Doc 3. Les principaux flux mondiaux","Quels espaces ces flux relient-ils ? Que transportent-ils ?"],4:["Doc 4. Quelques villes en déclin","Quelles villes perdent des habitants ? Dans quels pays ? Pourquoi ?"]};
+    const missing=[];if(!allRead)missing.push(4-R.size===1?"lire le dernier document":`lire les ${4-R.size} documents restants`);if(!lv)missing.push("choisir ton parcours");
+    h=`<h2 class="problem">Toutes les villes sont-elles connectées de la même manière à la mondialisation ?</h2>
+    <p>Pour répondre, tu vas compléter la carte vierge ci-dessous : repérer les métropoles, les hiérarchiser, situer les mégalopoles, tracer les flux, puis localiser des villes en déclin comme Detroit. À la fin, tu recopieras ta carte à la main sur ta fiche.</p>
+    <p style="margin-top:14px"><b>1. Avant de commencer, lis attentivement les 4 documents.</b> Ouvre chacun d'eux et cherche la réponse à la question posée. Tu en auras besoin pour réussir.</p>
+    <div class="docs3">${[1,2,3,4].map(n=>`<button class="docread ${R.has(n)?"read":""}" data-doc="${n}"><b>${docDesc[n][0]}</b><span>${docDesc[n][1]}</span></button>`).join("")}</div>
+    <p style="margin-top:14px"><b>2. Choisis ton parcours</b></p>
+    <div class="levels">
+      <button class="lvl" data-lv="guide" aria-pressed="${lv==="guide"}"><b>Pas à pas</b><span>Les documents restent à portée de main, les indices sont visibles et on te dit combien de réponses chercher.</span></button>
+      <button class="lvl" data-lv="std" aria-pressed="${lv==="std"}"><b>Standard</b><span>Tu peux revoir les documents si besoin. Un indice apparaît après une erreur.</span></button>
+      <button class="lvl" data-lv="expert" aria-pressed="${lv==="expert"}"><b>Expert</b><span>Aucun indice, des pièges en plus. Rouvrir les documents pendant l'activité te coûte 1 point.</span></button>
+    </div>
+    <div class="row"><button class="btn" id="next" ${lv&&allRead?"":"disabled"}>Commencer</button>${missing.length?`<span style="color:var(--muted);font-size:.9rem">Pour commencer, il te reste à ${missing.join(" et ")}.</span>`:""}</div>`;
+  }
+  if(st===1){
+    const left=CITIES.filter(c=>!S.placed[c.id]);
+    h=head(1,"Repérer les métropoles mondiales")+
+    `<p>Clique sur un nom, puis sur le point rouge qui lui correspond. Zoome sur l'Europe et l'Amérique du Nord : les points y sont serrés.</p>
+    <div class="chips">${CITIES.map(c=>`<button class="chip ${S.placed[c.id]?"done":""}" data-city="${c.id}" aria-pressed="${S.sel===c.id}" ${S.placed[c.id]?"disabled":""}>${c.name}${lv==="guide"?`<small>${c.cont}</small>`:""}</button>`).join("")}</div>
+    <p style="color:var(--muted);font-size:.9rem">${13-left.length} villes placées sur 13</p>
+    <div class="row">${docLink(1)}</div>
+    <div id="fb" class="fb"></div>`+(left.length===0?nextBtn():"");
+  }
+  if(st===2){
+    h=head(2,"Hiérarchiser : villes globales et autres métropoles")+
+    `<div class="def">Une <b>ville globale</b> est une métropole qui commande l'économie mondiale : elle concentre les sièges sociaux des grandes entreprises, une grande bourse, des médias et des universités de rang mondial, et un très grand aéroport international.</div>
+    <p>Sélectionne les villes globales, sur la carte ou dans la liste. Les autres resteront des « autres métropoles mondiales ».${lv==="guide"?" <b>Il y en a 4, dont 2 en Europe.</b>":""}</p>
+    <div class="chips">${CITIES.map(c=>`<button class="chip ${S.globalsDone?(c.g?"good":""):(S.wrongG&&S.wrongG.has(c.id)?"bad":"")}" data-glob="${c.id}" aria-pressed="${S.globalsDone?c.g:S.globals.has(c.id)}" ${S.globalsDone?"disabled":""}>${c.name}</button>`).join("")}</div>
+    <div class="row">${S.globalsDone?"":`<button class="btn" id="check">Vérifier</button>`}${docLink(1)}</div>
+    <div id="fb" class="fb"></div>`+(S.globalsDone?nextBtn():"");
+  }
+  if(st===3){
+    h=head(3,"Situer les mégalopoles")+
+    `<div class="def">Une <b>mégalopole</b> est un chapelet de grandes villes reliées entre elles, qui forment une région urbaine presque continue sur des centaines de kilomètres.${lv==="expert"?" Attention : une mégapole (une ville de plus de 10 millions d'habitants) n'est pas une mégalopole.":""}</div>
+    <p>Sélectionne les zones où se trouvent les mégalopoles.${lv==="guide"?" <b>Il y en a 3.</b>":""}</p>
+    <div class="chips">${zones().map(z=>`<button class="chip ${S.megaDone?(z.ok?"good":""):(S.wrongZ&&S.wrongZ.has(z.id)?"bad":"")}" data-zone="${z.id}" aria-pressed="${S.megaDone?z.ok:S.zonesSel.has(z.id)}" ${S.megaDone?"disabled":""}>${z.id}<small>${z.name}</small></button>`).join("")}</div>
+    <div class="row">${S.megaDone?"":`<button class="btn" id="check">Vérifier</button>`}${docLink(2)}</div>
+    <div id="fb" class="fb"></div>`+(S.megaDone?nextBtn():"");
+  }
+  if(st===4){
+    const keys=[];const ids=Object.keys(NODES);
+    for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++)keys.push(pairKey(ids[i],ids[j]));
+    h=head(4,"Tracer les flux majeurs")+
+    `<p>Les flux d'informations, de capitaux et de marchandises relient les grands pôles de la mondialisation. Clique sur deux pôles de la carte pour tracer une flèche (clique à nouveau pour l'effacer), ou coche les liaisons ci-dessous.${lv==="guide"?" <b>Trace 3 flèches : les flux majeurs relient les régions qui possèdent une mégalopole.</b>":""}</p>
+    <div class="chips">${keys.map(k=>{const [a,b]=k.split("-");const on=S.fluxDone?TRIAD.includes(k):S.links.has(k);return `<button class="chip ${S.fluxDone&&on?"good":""}" data-link="${k}" aria-pressed="${on}" ${S.fluxDone?"disabled":""}>${NODES[a].name} ↔ ${NODES[b].name}</button>`;}).join("")}</div>
+    <div class="row">${S.fluxDone?"":`<button class="btn" id="check">Vérifier</button>`}${docLink(3)}</div>
+    <div id="fb" class="fb"></div>
+    ${S.fluxDone&&lv==="expert"&&!S.triadeOK?`<div class="q"><p>Question bonus : comment appelle-t-on l'ensemble de ces trois pôles ?</p><div class="row" style="margin-top:4px"><input id="triade" style="border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--panel)" aria-label="Ta réponse"><button class="btn alt" id="checkT">Valider</button></div></div>`:""}`+
+    (S.fluxDone?nextBtn():"");
+  }
+  if(st===5){
+    const Q=QUESTIONS,n=Object.keys(S.shrink).length,all=n===SHRINK.length;
+    h=head(5,"Localiser d'autres villes en déclin")+
+    `<p>Le losange noir, c'est Detroit, la « shrinking city » que tu as étudiée. Le document 4 montre qu'elle n'est pas un cas isolé : d'autres villes perdent leurs habitants et leurs activités.</p>
+    <p><b>1. Cherche chaque ville sur Google Maps.</b> Le lien ouvre la carte dans un nouvel onglet. Dézoome jusqu'à voir le pays et le continent, puis repère un indice qui t'aidera : une côte, un fleuve, une frontière, une grande ville que tu connais.</p>
+    <p><b>2. Reporte-la sur ta carte.</b> Reviens ici, clique sur le nom de la ville, puis clique sur la carte à l'endroit où elle se trouve. Zoome pour être précis.</p>
+    <div class="shlist">${SHRINK.map(c=>`<div class="shrow"><button class="chip ${S.shrink[c.id]?"done":""}" data-sh="${c.id}" aria-pressed="${S.shSel===c.id}" ${S.shrink[c.id]?"disabled":""}>${c.name}<small>${c.country}</small></button><a class="gm ${S.gm&&S.gm.has(c.id)?"seen":""}" data-gm="${c.id}" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.name+", "+c.country)}" target="_blank" rel="noopener">Voir sur Google Maps<span class="sr"> (nouvel onglet)</span></a></div>`).join("")}</div>
+    <div class="row" style="margin-top:0">${docLink(4)}</div>
+    <p style="color:var(--muted);font-size:.9rem">${n} ville${n>1?"s":""} localisée${n>1?"s":""} sur ${SHRINK.length}</p>
+    <div id="fb" class="fb"></div>
+    ${all?Q.map((q,i)=>`<div class="q"><p>3. ${q.t}</p><div class="opts">${q.o.map((o,j)=>{
+      const st2=S.q[i]||{sel:[],done:false,bad:[]};
+      const cls=st2.done?(q.ok.includes(j)?"good":""):(st2.bad.includes(j)?"bad":"");
+      return `<button class="opt ${cls}" data-q="${i}" data-o="${j}" aria-pressed="${st2.done&&q.ok.includes(j)}" ${st2.done?"disabled":""}>${o}</button>`;}).join("")}</div>
+      ${S.q[i]&&S.q[i].done?`<div class="fb ok">${q.ex}</div>`:(S.q[i]&&S.q[i].msg?`<div class="fb err">${S.q[i].msg}</div>`:"")}</div>`).join(""):""}`+(S.detroitDone?nextBtn():"");
+  }
+  if(st===6){
+    h=head(6,"Habiller le croquis")+
+    `<p><b>a. Choisis le titre</b></p><div class="opts">${TITLES.map((t,i)=>`<button class="opt ${S.habDone&&t.ok?"good":""}" data-title="${i}" aria-pressed="${S.title===t.t}" ${S.habDone?"disabled":""}>${t.t}</button>`).join("")}</div>
+    <p style="margin-top:14px"><b>b. Nomme les océans</b> : clique sur un nom, puis sur un cadre en pointillés de la carte.</p>
+    <div class="chips">${OCEAN_CHIPS.map(o=>{const used=Object.values(S.oceans).includes(o.id);return `<button class="chip ${used&&!S.habDone?"done":""}" data-ocean="${o.id}" aria-pressed="${S.oceanSel===o.id}" ${S.habDone?"disabled":""}>${o.name}</button>`;}).join("")}</div>
+    <p><b>c. Complète la légende</b> sous la carte : un titre pour chaque partie, puis le sens de chaque figuré.</p>
+    <div class="row">${S.habDone?"":`<button class="btn" id="check">Vérifier l'habillage</button>`}</div>
+    <div id="fb" class="fb"></div>`+(S.habDone?nextBtn("Faire le bilan"):"");
+  }
+  if(st===7){h=renderBilan();}
+  panel.innerHTML=h;
+  bindPanel();
+}
+
+const QUESTIONS=[
+ {t:"Observe la carte : où se trouvent ces villes en déclin ?",o:["Dans de vieilles régions industrielles ou minières des pays riches, au sein des pôles de la Triade","Dans les pays les plus pauvres du monde","Au cœur des villes globales"],ok:[0],multi:false,
+  ex:"Exact : elles ont perdu leurs usines ou leurs mines. Même au cœur de la Triade, certaines villes sont en marge de la mondialisation."}
+];
+
+function renderBilan(){
+  const lv=S.level;
+  const blanks=[
+    ["villes globales","métropoles régionales","petites villes"],
+    ["flux","frontières","reliefs"],
+    ["mégalopoles","mégapoles","banlieues"],
+    ["Triade","Afrique","Amérique du Sud"],
+    ["à l'écart","au centre","en tête"],
+    ["automobile","textile","touristique"]
+  ];
+  BILAN_OK=blanks.map(b=>b[0]);
+  const sel=i=>{let o=blanks[i].slice(0,lv==="guide"?2:3);o=shuffleSeed(o,i);return `<select data-b="${i}" aria-label="Mot manquant ${i+1}"><option value="">…</option>${o.map(w=>`<option>${w}</option>`).join("")}</select>`;};
+  let body;
+  if(lv==="expert"){
+    body=`<p>Rédige un court paragraphe qui répond à la question : <i>toutes les villes sont-elles connectées de la même manière à la mondialisation ?</i> Appuie-toi sur ton croquis.</p>
+    <textarea id="para" aria-label="Ton paragraphe"></textarea>
+    <ul class="check" id="chk">
+      <li data-k="ville globale|villes globales">Je cite les villes globales et un exemple</li>
+      <li data-k="megalopole">J'emploie le mot mégalopole</li>
+      <li data-k="flux">J'évoque les flux</li>
+      <li data-k="triade">J'emploie le mot Triade</li>
+      <li data-k="detroit|marge|ecart|declin|shrinking">J'évoque les villes en déclin (Detroit…)</li>
+    </ul>`;
+  } else {
+    body=`<p>Complète le paragraphe de synthèse.</p>
+    <p class="bilan">Les villes ne sont pas toutes connectées de la même manière à la mondialisation. Au sommet de la hiérarchie, les ${sel(0)} comme New York, Londres, Paris et Tokyo commandent l'économie mondiale. Elles sont reliées entre elles par des ${sel(1)} d'informations, de capitaux et de marchandises. Les grandes régions urbaines que sont les ${sel(2)} se trouvent dans les trois pôles de la ${sel(3)}. Mais certaines villes restent ${sel(4)}, comme Detroit, une « shrinking city » qui perd des habitants depuis la crise de l'industrie ${sel(5)}, ou Pittsburgh et Liverpool.</p>
+    <div class="row"><button class="btn alt" id="checkB">Vérifier mon bilan</button></div>`;
+  }
+  const t=total(),lvl=S.teacher?"Corrigé":t>=17?"Très bonne maîtrise":t>=13?"Maîtrise satisfaisante":t>=9?"Maîtrise fragile":"Maîtrise insuffisante";
+  return `<div class="where">Bilan</div><h2>Je réponds à la question de départ</h2>${body}<div id="fb" class="fb"></div>
+  <div class="q"><p>Mon résultat</p>
+  ${S.teacher?`<p>Mode enseignant : le score n'est pas calculé.</p>`:`<div class="score"><b>${String(t).replace(".",",")}</b><span>sur 20</span></div>
+  <p>Positionnement indicatif pour « réaliser une production cartographique » : <b>${lvl}</b></p>
+  <table class="det">${[1,2,3,4,5,6].map(i=>`<tr><td>${STEP_NAMES[i]}</td><td>${String(stepScore(i)).replace(".",",")} / ${BASE[i]}</td></tr>`).join("")}
+  ${S.docPenalty?`<tr><td>Documents consultés</td><td>−1</td></tr>`:""}</table>
+  <p style="font-size:.85rem;color:var(--muted)">Parcours : ${{guide:"pas à pas",std:"standard",expert:"expert"}[lv]||"–"}</p>`}
+  </div>
+  <div class="copy"><p style="margin:0"><b>Le travail à rendre : ta copie à la main</b></p>
+  <p style="margin:4px 0 0;font-size:.93rem">Reproduis cette carte finale sur ta fiche papier, au crayon de couleur. Vérifie que tu as :</p>
+  <ul><li>recopié le titre ;</li><li>placé et nommé les 13 métropoles, avec des cercles pour les villes globales et des points pour les autres ;</li><li>dessiné les 3 mégalopoles et les 3 flux à double flèche ;</li><li>placé Detroit et les 5 autres villes en déclin avec un losange noir ;</li><li>nommé les 4 océans en bleu ;</li><li>complété la légende en 2 parties, avec les mêmes figurés que sur la carte ;</li><li>soigné ton travail : couleurs, écriture lisible.</li></ul></div>
+  <div class="row"><button class="btn" id="print">Imprimer la carte modèle</button><button class="btn alt" id="restart">Recommencer</button></div>`;
+}
+let BILAN_OK=[];
+function shuffleSeed(a,s){const r=a.slice();for(let i=r.length-1;i>0;i--){const j=(i*7+s*3+1)%(i+1);[r[i],r[j]]=[r[j],r[i]];}return r;}
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+
+/* ---------- Actions ---------- */
+function act(type,id){
+  const st=S.step,lv=S.level;
+  if(type==="city"&&st===1){
+    if(!S.sel){fb("","Choisis d'abord un nom dans la liste, puis clique sur un point.");return;}
+    const want=byId(S.sel);
+    if(id===S.sel){S.placed[id]=true;S.sel=null;renderMap();renderPanel();
+      const n=Object.keys(S.placed).length;
+      fb("ok",n===13?"Les 13 métropoles mondiales sont placées. Passe à l'étape suivante.":`Bien vu : ${want.name} est placée.`);}
+    else{S.err[1]++;const c=byId(id);blinkAt(c.lon,c.lat);
+      fb("err",`Ce point n'est pas ${want.name}.`+(lv==="expert"?"":` Indice : ${want.hint}.`));}
+    return;
+  }
+  if(type==="city"&&st===2&&!S.globalsDone){S.globals.has(id)?S.globals.delete(id):S.globals.add(id);S.wrongG=null;renderMap();renderPanel();return;}
+  if(type==="zone"&&st===3&&!S.megaDone){S.zonesSel.has(id)?S.zonesSel.delete(id):S.zonesSel.add(id);S.wrongZ=null;renderMap();renderPanel();return;}
+  if(type==="node"&&st===4&&!S.fluxDone){
+    if(!S.pending){S.pending=id;renderMap();fb("",`${NODES[id].name} sélectionné. Clique sur le pôle à relier.`);return;}
+    if(S.pending===id){S.pending=null;renderMap();fb("","");return;}
+    const k=pairKey(S.pending,id);S.links.has(k)?S.links.delete(k):S.links.add(k);S.pending=null;renderMap();renderPanel();return;
+  }
+  if(type==="slot"&&st===6&&!S.habDone){
+    if(!S.oceanSel){fb("","Choisis d'abord un nom d'océan, puis clique sur un cadre.");return;}
+    for(const k in S.oceans)if(S.oceans[k]===S.oceanSel)delete S.oceans[k];
+    S.oceans[id]=S.oceanSel;S.oceanBad[id]=false;S.oceanSel=null;renderMap();renderPanel();return;
+  }
+}
+
+function bindPanel(){
+  const $=s=>panel.querySelector(s),$$=s=>panel.querySelectorAll(s);
+  const nx=$("#next");
+  if(nx)nx.addEventListener("click",()=>{
+    if(S.step===0){go(1);return;}
+    go(S.step+1);
+  });
+  $$("[data-lv]").forEach(b=>b.addEventListener("click",()=>{S.level=b.dataset.lv;S.zonesSel=new Set();renderPanel();renderAll();}));
+  $$("[data-doc]").forEach(b=>b.addEventListener("click",()=>openDocs(+b.dataset.doc)));
+  // étape 1
+  $$("[data-city]").forEach(b=>b.addEventListener("click",()=>{S.sel=S.sel===b.dataset.city?null:b.dataset.city;
+    $$("[data-city]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.city===S.sel));
+    if(S.sel)fb("",`Clique maintenant sur le point de <b>${byId(S.sel).name}</b>.`+(S.level==="guide"?` (${byId(S.sel).hint})`:""));}));
+  // étape 2
+  $$("[data-glob]").forEach(b=>b.addEventListener("click",()=>act("city",b.dataset.glob)));
+  // étape 3
+  $$("[data-zone]").forEach(b=>b.addEventListener("click",()=>act("zone",b.dataset.zone)));
+  // étape 4
+  $$("[data-link]").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.link;S.links.has(k)?S.links.delete(k):S.links.add(k);renderMap();renderPanel();}));
+  const ct=$("#checkT");
+  if(ct)ct.addEventListener("click",()=>{const v=norm($("#triade").value);
+    if(v.includes("triade")){S.triadeOK=true;renderPanel();fb("ok","Oui, c'est la Triade : Amérique du Nord, Europe de l'Ouest et Asie orientale.");}
+    else fb("err","Ce n'est pas le mot attendu. Il commence par « Tri… ».");});
+  // étape 5
+  $$("[data-gm]").forEach(a=>a.addEventListener("click",()=>{(S.gm||(S.gm=new Set())).add(a.dataset.gm);a.classList.add("seen");}));
+  $$("[data-sh]").forEach(b=>b.addEventListener("click",()=>{S.shSel=S.shSel===b.dataset.sh?null:b.dataset.sh;
+    $$("[data-sh]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.sh===S.shSel));
+    if(S.shSel){const c=SHRINK.find(x=>x.id===S.shSel);fb("",`Clique sur la carte à l'endroit où se trouve <b>${c.name}</b>.`+(S.level==="guide"?` (${c.where})`:""));}}));
+  $$("[data-q]").forEach(b=>b.addEventListener("click",()=>{
+    const i=+b.dataset.q,j=+b.dataset.o,q=QUESTIONS[i];
+    const st=S.q[i]||(S.q[i]={sel:[],done:false,bad:[]});
+    if(q.multi){st.sel.includes(j)?st.sel=st.sel.filter(x=>x!==j):st.sel.push(j);st.bad=[];st.msg="";renderPanel();return;}
+    if(q.ok.includes(j)){st.done=true;st.sel=[j];}else{S.err[5]++;st.bad=[j];st.msg="Ce n'est pas la bonne réponse. Relis la fiche.";}
+    checkDetroit();renderPanel();
+  }));
+  $$("[data-qv]").forEach(b=>b.addEventListener("click",()=>{
+    const i=+b.dataset.qv,q=QUESTIONS[i],st=S.q[i]||(S.q[i]={sel:[],done:false,bad:[]});
+    const good=st.sel.length===q.ok.length&&q.ok.every(x=>st.sel.includes(x));
+    if(good)st.done=true;
+    else{S.err[5]++;st.bad=st.sel.filter(x=>!q.ok.includes(x));
+      const miss=q.ok.filter(x=>!st.sel.includes(x)).length;
+      st.msg=(st.bad.length?"Une réponse choisie est fausse. ":"")+(miss?(S.level==="guide"?`Il manque ${miss} bonne(s) réponse(s).`:"Il manque au moins une bonne réponse."):"");}
+    checkDetroit();renderPanel();
+  }));
+  // étape 6
+  $$("[data-title]").forEach(b=>b.addEventListener("click",()=>{S.title=TITLES[+b.dataset.title].t;renderLegend();renderPanel();}));
+  $$("[data-ocean]").forEach(b=>b.addEventListener("click",()=>{
+    if(Object.values(S.oceans).includes(b.dataset.ocean)){for(const k in S.oceans)if(S.oceans[k]===b.dataset.ocean)delete S.oceans[k];renderMap();}
+    S.oceanSel=b.dataset.ocean;renderPanel();fb("",`Clique sur le cadre où écrire « ${OCEAN_CHIPS.find(o=>o.id===S.oceanSel).name} ».`);}));
+  // vérifications
+  const ck=$("#check");
+  if(ck)ck.addEventListener("click",()=>({2:check2,3:check3,4:check4,6:check6})[S.step]());
+  // bilan
+  const cb=$("#checkB");
+  if(cb)cb.addEventListener("click",()=>{let ok=0;$$("[data-b]").forEach(s=>{const g=s.value===BILAN_OK[+s.dataset.b];s.className=g?"good":"bad";if(g)ok++;});
+    fb(ok===6?"ok":"err",ok===6?"Ton bilan est juste. Tu sais répondre à la question de départ.":`${ok} mots justes sur 6. Corrige les cases en orange.`);});
+  const pa=$("#para");
+  if(pa)pa.addEventListener("input",()=>{const v=norm(pa.value);$$("#chk li").forEach(li=>li.classList.toggle("on",li.dataset.k.split("|").some(k=>v.includes(k))));});
+  const pr=$("#print");if(pr)pr.addEventListener("click",()=>{zoomTo("monde");setTimeout(()=>window.print(),reduce?50:520);});
+  const rs=$("#restart");if(rs)rs.addEventListener("click",()=>{T.on=false;S=freshState();zoomTo("monde");renderAll();window.scrollTo(0,0);});
+}
+
+function checkDetroit(){if(Object.keys(S.shrink).length===SHRINK.length&&QUESTIONS.every((q,i)=>S.q[i]&&S.q[i].done))S.detroitDone=true;}
+function placeShrink(p){
+  if(!S.shSel){fb("","Choisis d'abord un nom de ville, puis clique sur la carte.");return;}
+  const c=SHRINK.find(x=>x.id===S.shSel),[x,y]=ne(c.lon,c.lat),d=Math.hypot(p.x-x,p.y-y),tol=TOL[S.level||"std"];
+  if(d<=tol){S.shrink[c.id]=true;S.shSel=null;renderMap();renderPanel();
+    fb("ok",Object.keys(S.shrink).length===SHRINK.length?"Toutes les villes en déclin sont localisées. Réponds à la dernière question.":`Bien placé : ${c.name}.`);}
+  else{S.err[5]+=0.5;E("circle",{cx:f(p.x),cy:f(p.y),r:8,fill:"none",stroke:"#a33d17","stroke-width":"3",class:"blink"},L.fx);
+    const far=d>tol*3;
+    fb("err",`Ce n'est pas l'emplacement de ${c.name}.`+(S.level==="expert"?"":(far?` Retourne sur Google Maps et dézoome pour voir dans quelle région elle se trouve.`+(S.level==="guide"?` Le document 4 indique : ${c.where}.`:""):" Tu es tout près, zoome pour être plus précis.")));}
+}
+function check2(){
+  const wrong=new Set(CITIES.filter(c=>c.g!==S.globals.has(c.id)).map(c=>c.id));
+  if(!wrong.size){S.globalsDone=true;S.wrongG=null;renderMap();renderPanel();
+    fb("ok","Exact : New York, Londres, Paris et Tokyo sont les quatre villes globales. Les autres sont des métropoles mondiales, puissantes mais moins influentes.");return;}
+  S.err[2]++;S.wrongG=wrong;renderMap();renderPanel();
+  const nb=wrong.size;
+  fb("err",S.level==="expert"?"Ta sélection contient des erreurs.":`${nb} ville${nb>1?"s sont mal classées":" est mal classée"} (entourée${nb>1?"s":""} en pointillés).`+(S.level==="guide"?" Rappel : 4 villes globales, dont 2 en Europe, 1 en Amérique et 1 en Asie.":""));
+}
+function check3(){
+  const Z=zones(),wrong=new Set(Z.filter(z=>z.ok!==S.zonesSel.has(z.id)).map(z=>z.id));
+  if(!wrong.size){S.megaDone=true;S.wrongZ=null;renderMap();renderPanel();
+    fb("ok","Bravo : les trois mégalopoles sont américaine (de Boston à Washington), européenne (de Londres à Milan) et japonaise (de Tokyo à Fukuoka).");return;}
+  S.err[3]++;S.wrongZ=wrong;renderMap();renderPanel();
+  const falses=Z.filter(z=>!z.ok&&S.zonesSel.has(z.id));
+  let msg=falses.length?falses.map(z=>`${z.id} (${z.name}) : ${z.why}.`).join("<br>"):"";
+  if(Z.some(z=>z.ok&&!S.zonesSel.has(z.id)))msg+=(msg?"<br>":"")+"Il manque au moins une mégalopole.";
+  fb("err",S.level==="expert"&&!falses.some(z=>/mégapole/.test(z.why))?"Ta sélection contient des erreurs.":msg);
+}
+function check4(){
+  const wrong=[...S.links].filter(k=>!TRIAD.includes(k)),miss=TRIAD.filter(k=>!S.links.has(k));
+  if(!wrong.length&&!miss.length){S.fluxDone=true;renderMap();renderPanel();
+    fb("ok","Juste : les flux majeurs relient les trois pôles de la Triade (Amérique du Nord, Europe de l'Ouest, Asie orientale). La flèche du Pacifique sort de la carte à droite et revient à gauche.");return;}
+  S.err[4]++;
+  let msg=[];
+  if(wrong.length)msg.push(S.level==="expert"?"Une flèche n'est pas un flux majeur.":`Ces flux existent, mais ne sont pas majeurs : ${wrong.map(k=>k.split("-").map(x=>NODES[x].name).join(" ↔ ")).join(", ")}.`);
+  if(miss.length)msg.push(S.level==="guide"?`Il manque ${miss.length} flèche(s).`:"Il manque au moins un flux majeur.");
+  fb("err",msg.join(" "));
+}
+function check6(){
+  let bad=0;const notes=[];
+  const t=TITLES.find(x=>x.t===S.title);
+  if(!t||!t.ok){bad++;if(t&&S.level!=="expert")notes.push(t.why);else notes.push("Le titre ne convient pas.");}
+  S.oceanBad={};
+  OCEAN_SLOTS.forEach(s=>{const c=S.oceans[s.id];if(!c||OCEAN_CHIPS.find(o=>o.id===c).type!==s.type){bad++;S.oceanBad[s.id]=true;}});
+  if(Object.keys(S.oceanBad).length)notes.push("Un ou plusieurs océans sont mal placés (cadre orange).");
+  S.legBad={};
+  for(const k in LEG_OK)if(S.legend[k]!==LEG_OK[k]){bad++;S.legBad[k]=true;}
+  if(Object.keys(S.legBad).length)notes.push("Des éléments de légende sont à revoir (en orange).");
+  if(!bad){S.habDone=true;renderAll();fb("ok","Ton croquis est complet : titre, océans et légende organisée en deux parties.");return;}
+  S.err[6]+=Math.min(bad,4);renderMap();renderLegend();renderPanel();fb("err",notes.join("<br>"));
+}
+
+/* ---------- Documents ---------- */
+const dlg=document.getElementById("docs"),dbody=document.getElementById("dbody");
+function buildDoc(n){
+  dlg.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",+t.dataset.d===n?"true":"false"));
+  if(S.level==="expert"&&!S.teacher&&!S.docPenalty&&S.step>=1&&S.step<=6&&n<=4){S.docPenalty=true;document.getElementById("openDocs").textContent="Documents";}
+  if(!S.docsRead.has(n)){S.docsRead.add(n);if(S.step===0||S.step===5)renderPanel();}
+  if(n===4){
+    dbody.innerHTML=`<h3>Document 4. Quelques villes en déclin dans le monde</h3>
+    <p style="margin:0 0 8px">Comme Detroit, ces villes sont des « shrinking cities » : elles ont perdu une grande partie de leurs habitants et de leurs activités.</p>
+    <div style="overflow-x:auto"><table class="dtab"><thead><tr><th>Ville</th><th>Pays</th><th>Où se trouve-t-elle ?</th><th>Pourquoi décline-t-elle ?</th><th>Nombre d'habitants</th></tr></thead><tbody>
+    <tr class="known"><td>Detroit</td><td>États-Unis</td><td>au bord des Grands Lacs</td><td>crise de l'industrie automobile</td><td>1&nbsp;850&nbsp;000 (1950) → 639&nbsp;000 (2020)</td></tr>
+    ${SHRINK.map(c=>`<tr><td><b>${c.name}</b></td><td>${c.country}</td><td>${c.where}</td><td>${c.why}</td><td>${c.pop.replace(/(\d) (\d)/g,"$1&nbsp;$2")}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="dsrc">Population de la commune (sans sa banlieue), d'après les recensements nationaux. Chiffres arrondis.</p>`;
+    return;
+  }
+  const svg=E("svg",{role:"img","aria-label":"Document "+n});
+  drawBase(svg,"d"+n);
+  const g=E("g",{},svg),lb=E("g",{},svg);
+  let leg="";
+  if(n===1){CITIES.forEach(c=>{drawCityMark(g,c,c.g);drawCityLabel(lb,c);});
+    leg=`<span>${fig("g")} villes globales</span><span>${fig("m")} autres métropoles mondiales</span>`;}
+  if(n===2){drawMega(g,lb);
+    [["Océan Pacifique",-140,8],["Océan Atlantique",-36,12],["Océan Indien",76,-22],["Océan Pacifique",160,16]].forEach(o=>{const p=ne(o[1],o[2]);txt(lb,p[0],p[1],o[0],"lab-oce","middle");});
+    leg=`<span>${fig("meg")} mégalopoles</span>`;}
+  if(n===3){TRIAD.forEach(k=>drawLink(g,k,"d3",false));
+    [["Océan Pacifique",-140,8],["Océan Atlantique",-36,12],["Océan Indien",76,-22],["Océan Pacifique",160,16]].forEach(o=>{const p=ne(o[1],o[2]);txt(lb,p[0],p[1],o[0],"lab-oce","middle");});
+    leg=`<span>${fig("fl")} flux majeurs (informations, capitaux, marchandises)</span>`;}
+  const titles={1:"Document 1. Les villes mondiales",2:"Document 2. Les mégalopoles du monde",3:"Document 3. Les principaux flux mondiaux"};
+  dbody.innerHTML=`<h3>${titles[n]}</h3>`;
+  dbody.appendChild(svg);
+  const d=document.createElement("div");d.className="dleg";d.innerHTML=leg;dbody.appendChild(d);
+}
+function openDocs(n){
+  buildDoc(n||1);
+  if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","");
+}
+document.getElementById("openDocs").addEventListener("click",()=>openDocs(S.step===3?2:S.step===4?3:S.step===5?4:1));
+document.getElementById("closeDocs").addEventListener("click",()=>dlg.close?dlg.close():dlg.removeAttribute("open"));
+dlg.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>buildDoc(+t.dataset.d)));
+dlg.addEventListener("click",e=>{if(e.target===dlg)dlg.close();});
+
+/* ---------- Identité et corrigé ---------- */
+const nom=document.getElementById("nom"),cl=document.getElementById("classe");
+function syncId(){document.getElementById("pNom").textContent="NOM : "+nom.value;document.getElementById("pClasse").textContent="Classe : "+cl.value;}
+nom.addEventListener("input",syncId);cl.addEventListener("input",syncId);syncId();
+
+/* ---------- Mode enseignant ---------- */
+function fillUpTo(k){
+  if(k>=1)CITIES.forEach(c=>S.placed[c.id]=true);
+  if(k>=2){S.globalsDone=true;CITIES.forEach(c=>{if(c.g)S.globals.add(c.id);});}
+  if(k>=3){S.megaDone=true;zones().forEach(z=>{if(z.ok)S.zonesSel.add(z.id);});}
+  if(k>=4){S.fluxDone=true;S.triadeOK=true;S.links=new Set(TRIAD);}
+  if(k>=5){S.detroitDone=true;SHRINK.forEach(c=>S.shrink[c.id]=true);QUESTIONS.forEach((q,i)=>S.q[i]={sel:q.ok.slice(),done:true,bad:[]});}
+  if(k>=6){S.title=TITLES[0].t;S.legend=Object.assign({},LEG_OK);S.habDone=true;
+    S.oceans={pw:"p1",at:"at",in:"in",pe:"p2"};}
+}
+let T={on:false,answer:false};
+function teacherGoto(n){
+  const lv=S.level||"std";
+  S=freshState();S.level=lv;S.teacher=true;S.docsRead=new Set([1,2,3,4]);
+  fillUpTo(T.answer?n:n-1);
+  go(n);
+}
+function renderTbar(){
+  const tb=document.getElementById("tbar");
+  tb.classList.toggle("on",T.on);
+  if(!T.on){tb.innerHTML="";return;}
+  tb.innerHTML=`<b>Mode enseignant</b>${STEP_NAMES.map((n,i)=>`<button data-tg="${i}" aria-pressed="${S.step===i}">${i===0?n:i+". "+n}</button>`).join("")}
+  <label><input type="checkbox" id="tAns" ${T.answer?"checked":""}> avec la correction de l'étape</label>
+  <label>Parcours <select id="tLv">${[["guide","Pas à pas"],["std","Standard"],["expert","Expert"]].map(([v,l])=>`<option value="${v}" ${S.level===v?"selected":""}>${l}</option>`).join("")}</select></label>
+  <button id="tOff">Quitter</button>`;
+  tb.querySelectorAll("[data-tg]").forEach(b=>b.addEventListener("click",()=>teacherGoto(+b.dataset.tg)));
+  tb.querySelector("#tAns").addEventListener("change",e=>{T.answer=e.target.checked;teacherGoto(S.step);});
+  tb.querySelector("#tLv").addEventListener("change",e=>{S.level=e.target.value;teacherGoto(S.step);});
+  tb.querySelector("#tOff").addEventListener("click",()=>{T.on=false;
+    document.getElementById("tcontent").hidden=true;document.getElementById("tlogin").hidden=false;document.getElementById("tcode").value="";S=freshState();zoomTo("monde");renderAll();});
+}
+document.getElementById("tlogin").addEventListener("submit",e=>{
+  e.preventDefault();
+  const inp=document.getElementById("tcode"),msg=document.getElementById("tmsg");
+  if(inp.value.trim().toLowerCase()==="prof"){
+    document.getElementById("tcontent").hidden=false;document.getElementById("tlogin").hidden=true;msg.textContent="";
+  } else {msg.textContent="Code incorrect.";inp.value="";inp.focus();}
+});
+document.getElementById("teachOn").addEventListener("click",()=>{T.on=true;teacherGoto(S.step||0);window.scrollTo({top:0,behavior:reduce?"auto":"smooth"});});
+document.getElementById("fillAll").addEventListener("click",()=>{
+  T.on=true;T.answer=true;zoomTo("monde");teacherGoto(7);window.scrollTo({top:0,behavior:reduce?"auto":"smooth"});
+});
+
+renderAll();
+})();
+</script>
+</body>
+</html>
