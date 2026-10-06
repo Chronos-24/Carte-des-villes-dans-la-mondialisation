@@ -95,6 +95,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 /* Départ : problématique d'abord, carte vierge ensuite */
 .layout.start{grid-template-columns:1fr;max-width:1100px}
 .layout.start .panel{order:-1;position:static}
+.layout.start .sheet{display:none}
 .layout.start .levels{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
 .problem{font-size:clamp(1.3rem,2.6vw,1.75rem);line-height:1.25;margin:0 0 10px;padding:14px 16px;border:2px solid var(--ink);border-radius:8px}
 .docs3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:10px 0 6px}
@@ -719,7 +720,7 @@ function renderPanel(){
     const docDesc={1:["Doc 1. Les villes mondiales","Quelles villes sont représentées ? Quels sont les deux figurés ?"],2:["Doc 2. Les mégalopoles du monde","Combien y a-t-il de mégalopoles ? Sur quels continents ?"],3:["Doc 3. Les principaux flux mondiaux","Quels espaces ces flux relient-ils ? Que transportent-ils ?"],4:["Doc 4. Quelques villes en déclin","Quelles villes perdent des habitants ? Dans quels pays ? Pourquoi ?"]};
     const missing=[];if(!allRead)missing.push(4-R.size===1?"lire le dernier document":`lire les ${4-R.size} documents restants`);if(!lv)missing.push("choisir ton parcours");
     h=`<h2 class="problem">Toutes les villes sont-elles connectées de la même manière à la mondialisation ?</h2>
-    <p>Pour répondre, tu vas compléter la carte vierge ci-dessous : repérer les métropoles, les hiérarchiser, situer les mégalopoles, tracer les flux, puis localiser des villes en déclin comme Detroit. À la fin, tu recopieras ta carte à la main sur ta fiche.</p>
+    <p>Pour répondre, tu vas compléter une carte du monde : repérer les métropoles, les hiérarchiser, situer les mégalopoles, tracer les flux, puis localiser des villes en déclin comme Detroit. À la fin, tu recopieras ta carte à la main sur ta fiche.</p>
     <p style="margin-top:14px"><b>1. Avant de commencer, lis attentivement les 4 documents.</b> Ouvre chacun d'eux et cherche la réponse à la question posée. Tu en auras besoin pour réussir.</p>
     <div class="docs3">${[1,2,3,4].map(n=>`<button class="docread ${R.has(n)?"read":""}" data-doc="${n}"><b>${docDesc[n][0]}</b><span>${docDesc[n][1]}</span></button>`).join("")}</div>
     <p style="margin-top:14px"><b>2. Choisis ton parcours</b></p>
