@@ -201,8 +201,13 @@ dialog::backdrop{background:rgba(8,24,40,.55)}
 .dleg span{display:inline-flex;gap:8px;align-items:center}
 
 @media (prefers-reduced-motion:reduce){.blink{animation:none}}
+@page{size:A4 portrait;margin:10mm}
 @media print{
-  body{background:#fff;font-size:12pt}
+  *,*::before,*::after{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
+  html,body{background:#fff!important;font-size:12pt}
+  .sheet{border-top:4px solid #e4673f!important;break-inside:avoid}
+  .mapbox,.legend{break-inside:avoid}
+  #map{max-height:185mm;width:auto;max-width:100%;margin:0 auto}
   .top,.steps,.panel,.tools,.teacher,.tbar,.noprint{display:none!important}
   .layout{display:block;padding:0}
   .sheet{box-shadow:none;border:none;padding:0}
@@ -336,17 +341,13 @@ dialog::backdrop{background:rgba(8,24,40,.55)}
 (function(){
 "use strict";
 
-/* ---------- Projection Natural Earth ---------- */
-const W=1200, PAD=16;
-function neRaw(lon,lat){
-  const l=lat*Math.PI/180,l2=l*l,l4=l2*l2,lam=lon*Math.PI/180;
-  return [lam*(0.8707-0.131979*l2+l4*(-0.013791+l4*(0.003971*l2-0.001529*l4))),
-          l*(1.007226+l2*(0.015085+l4*(-0.044475+0.028874*l2-0.005916*l4)))];
-}
-const K=(W-2*PAD)/(2*neRaw(180,0)[0]);
-const YT=neRaw(0,84)[1], YB=neRaw(0,-58)[1];
-const H=Math.round((YT-YB)*K+2*PAD);
-const ne=(lon,lat)=>{const r=neRaw(lon,lat);return [W/2+r[0]*K, PAD+(YT-r[1])*K];};
+/* ---------- Projection azimutale centrée sur le pôle Nord ---------- */
+/* Comme dans les manuels : pôle Nord en haut au centre, Europe et Afrique en bas, Amériques à gauche, Asie à droite. */
+const W=1200, PAD=14;
+const XMIN=-142, XMAX=118, YMIN=-120, YMAX=128;
+const K=(W-2*PAD)/(XMAX-XMIN);
+const H=Math.round((YMAX-YMIN)*K+2*PAD);
+const ne=(lon,lat)=>{const r=90-lat,a=lon*Math.PI/180;return [PAD+(r*Math.sin(a)-XMIN)*K, PAD+(r*Math.cos(a)-YMIN)*K];};
 const f=n=>Math.round(n*10)/10;
 function poly(pts,close=true){return "M"+pts.map(p=>{const q=ne(p[0],p[1]);return f(q[0])+","+f(q[1]);}).join("L")+(close?"Z":"");}
 
@@ -391,19 +392,19 @@ casp:[[47,44.5],[49,46.5],[51.5,47],[53,46.8],[53,45.3],[51.3,44.5],[50.3,44.3],
 
 /* ---------- Données de l'activité ---------- */
 const CITIES=[
- {id:"ny", name:"New York",     lon:-74,   lat:40.7,  g:true,  hint:"côte Est des États-Unis, au bord de l'Atlantique", cont:"Amérique du Nord", lab:[9,13,"start"]},
+ {id:"ny", name:"New York",     lon:-74,   lat:40.7,  g:true,  hint:"côte Est des États-Unis, au bord de l'Atlantique", cont:"Amérique du Nord", lab:[9,12,"start"]},
  {id:"la", name:"Los Angeles",  lon:-118.2,lat:34,    g:false, hint:"côte Ouest des États-Unis, au bord du Pacifique", cont:"Amérique du Nord", lab:[-8,5,"end"]},
- {id:"chi",name:"Chicago",      lon:-87.6, lat:41.9,  g:false, hint:"au bord des Grands Lacs, au centre-nord des États-Unis", cont:"Amérique du Nord", lab:[-8,-4,"end"]},
+ {id:"chi",name:"Chicago",      lon:-87.6, lat:41.9,  g:false, hint:"au bord des Grands Lacs, au centre-nord des États-Unis", cont:"Amérique du Nord", lab:[-8,13,"end"]},
  {id:"sp", name:"São Paulo",    lon:-46.6, lat:-23.5, g:false, hint:"sud-est du Brésil", cont:"Amérique du Sud", lab:[8,11,"start"]},
- {id:"lon",name:"Londres",      lon:-0.1,  lat:51.5,  g:true,  hint:"capitale du Royaume-Uni, sur une île", cont:"Europe", lab:[-10,-5,"end"]},
- {id:"par",name:"Paris",        lon:2.35,  lat:48.85, g:true,  hint:"capitale de la France", cont:"Europe", lab:[-10,13,"end"]},
- {id:"mos",name:"Moscou",       lon:37.6,  lat:55.75, g:false, hint:"capitale de la Russie, à l'est de l'Europe", cont:"Europe", lab:[7,-6,"start"]},
+ {id:"lon",name:"Londres",      lon:-0.1,  lat:51.5,  g:true,  hint:"capitale du Royaume-Uni, sur une île", cont:"Europe", lab:[-10,7,"end"]},
+ {id:"par",name:"Paris",        lon:2.35,  lat:48.85, g:true,  hint:"capitale de la France", cont:"Europe", lab:[-10,19,"end"]},
+ {id:"mos",name:"Moscou",       lon:37.6,  lat:55.75, g:false, hint:"capitale de la Russie, à l'est de l'Europe", cont:"Europe", lab:[8,4,"start"]},
  {id:"joh",name:"Johannesburg", lon:28,    lat:-26.2, g:false, hint:"nord-est de l'Afrique du Sud", cont:"Afrique", lab:[8,5,"start"]},
  {id:"mum",name:"Mumbai",       lon:72.8,  lat:19,    g:false, hint:"côte ouest de l'Inde", cont:"Asie", lab:[-8,6,"end"]},
  {id:"sin",name:"Singapour",    lon:103.8, lat:1.35,  g:false, hint:"pointe sud de la péninsule malaise, près de l'équateur", cont:"Asie", lab:[-8,13,"end"]},
  {id:"hk", name:"Hong Kong",    lon:114.2, lat:22.3,  g:false, hint:"littoral sud de la Chine", cont:"Asie", lab:[8,12,"start"]},
- {id:"sha",name:"Shanghai",     lon:121.5, lat:31.2,  g:false, hint:"littoral est de la Chine, à l'embouchure du Yangzi", cont:"Asie", lab:[-8,4,"end"]},
- {id:"tok",name:"Tokyo",        lon:139.7, lat:35.7,  g:true,  hint:"capitale du Japon", cont:"Asie", lab:[10,5,"start"]}
+ {id:"sha",name:"Shanghai",     lon:121.5, lat:31.2,  g:false, hint:"littoral est de la Chine, à l'embouchure du Yangzi", cont:"Asie", lab:[-8,5,"end"]},
+ {id:"tok",name:"Tokyo",        lon:139.7, lat:35.7,  g:true,  hint:"capitale du Japon", cont:"Asie", lab:[10,4,"start"]}
 ];
 const byId=id=>CITIES.find(c=>c.id===id);
 const DETROIT={lon:-83,lat:42.3};
@@ -427,9 +428,9 @@ const ZONES_EXPERT=[
  {id:"G",lon:31.2,lat:30,ok:false,name:"Le Caire",why:"Le Caire est une mégapole, pas une mégalopole"}
 ];
 const MEGA=[
- {a:[-71,42.4],b:[-77,38.9],label:"Mégalopole américaine",lp:[-58,31],anchor:"start"},
+ {a:[-71,42.4],b:[-77,38.9],label:"Mégalopole américaine",lp:[-60,27],anchor:"middle"},
  {a:[-1.5,53],b:[9.2,45.5],label:"Mégalopole européenne",lp:[6,39.5],anchor:"start"},
- {a:[140.2,36.2],b:[130.4,33.6],label:"Mégalopole japonaise",lp:[147,38.5],anchor:"start"}
+ {a:[140.2,36.2],b:[130.4,33.6],label:"Mégalopole japonaise",lp:[149,31],anchor:"middle"}
 ];
 const NODES={
  NA:{name:"Amérique du Nord",lon:-80,lat:40.5},
@@ -443,7 +444,7 @@ const TRIAD=[pairKey("NA","EU"),pairKey("EU","AO"),pairKey("AO","NA")];
 const OCEAN_SLOTS=[
  {id:"pw",lon:-140,lat:8,type:"P"},
  {id:"at",lon:-36,lat:12,type:"A"},
- {id:"in",lon:76,lat:-22,type:"I"},
+ {id:"in",lon:72,lat:-18,type:"I"},
  {id:"pe",lon:160,lat:16,type:"P"}
 ];
 const OCEAN_CHIPS=[
@@ -463,11 +464,11 @@ const LEG_OK={T1:LEG_PARTS[0],T2:LEG_PARTS[1],g:LEG_ITEMS[0],m:LEG_ITEMS[1],d:LE
 
 const STEP_NAMES=["Départ","Repérer","Hiérarchiser","Mégalopoles","Flux","Villes en déclin","Habiller","Bilan"];
 const SHRINK=[
- {id:"stl",name:"Saint-Louis",country:"États-Unis",lon:-90.2,lat:38.6,where:"au centre des États-Unis, au bord du Mississippi",why:"fermeture d'usines, départ des habitants vers les banlieues",pop:"857 000 (1950) → 302 000 (2020)",lab:[-8,5,"end"]},
- {id:"pit",name:"Pittsburgh",country:"États-Unis",lon:-80,lat:40.4,where:"au nord-est des États-Unis, entre les Grands Lacs et la côte Atlantique",why:"crise de la sidérurgie (production d'acier)",pop:"677 000 (1950) → 303 000 (2020)",lab:[0,21,"middle"]},
- {id:"liv",name:"Liverpool",country:"Royaume-Uni",lon:-3,lat:53.4,where:"port de la côte ouest de l'Angleterre, au nord-ouest de Londres",why:"déclin du port et des industries",pop:"plus de 800 000 (années 1930) → 486 000 (2021)",lab:[-5,-14,"end"]},
- {id:"hoy",name:"Hoyerswerda",country:"Allemagne",lon:14.25,lat:51.4,where:"à l'est de l'Allemagne, près de la frontière polonaise",why:"fermeture des mines de charbon après la réunification",pop:"environ 70 000 (1980) → environ 31 000 (2020)",lab:[7,15,"start"]},
- {id:"yub",name:"Yubari",country:"Japon",lon:141.97,lat:43.05,where:"sur l'île d'Hokkaido, au nord du Japon",why:"fermeture des mines de charbon",pop:"plus de 110 000 (1960) → environ 7 000 (2020)",lab:[9,-8,"start"]}
+ {id:"stl",name:"Saint-Louis",country:"États-Unis",lon:-90.2,lat:38.6,where:"au centre des États-Unis, au bord du Mississippi",why:"fermeture d'usines, départ des habitants vers les banlieues",pop:"857 000 (1950) → 302 000 (2020)",lab:[-8,-6,"end"]},
+ {id:"pit",name:"Pittsburgh",country:"États-Unis",lon:-80,lat:40.4,where:"au nord-est des États-Unis, entre les Grands Lacs et la côte Atlantique",why:"crise de la sidérurgie (production d'acier)",pop:"677 000 (1950) → 303 000 (2020)",lab:[-8,9,"end"]},
+ {id:"liv",name:"Liverpool",country:"Royaume-Uni",lon:-3,lat:53.4,where:"port de la côte ouest de l'Angleterre, au nord-ouest de Londres",why:"déclin du port et des industries",pop:"plus de 800 000 (années 1930) → 486 000 (2021)",lab:[-8,-5,"end"]},
+ {id:"hoy",name:"Hoyerswerda",country:"Allemagne",lon:14.25,lat:51.4,where:"à l'est de l'Allemagne, près de la frontière polonaise",why:"fermeture des mines de charbon après la réunification",pop:"environ 70 000 (1980) → environ 31 000 (2020)",lab:[8,5,"start"]},
+ {id:"yub",name:"Yubari",country:"Japon",lon:141.97,lat:43.05,where:"sur l'île d'Hokkaido, au nord du Japon",why:"fermeture des mines de charbon",pop:"plus de 110 000 (1960) → environ 7 000 (2020)",lab:[-8,7,"end"]}
 ];
 const TOL={guide:28,std:19,expert:13};
 const BASE=[0,4,3,3,3,3,4];
@@ -489,15 +490,13 @@ const NS="http://www.w3.org/2000/svg";
 function E(t,a,p){const e=document.createElementNS(NS,t);if(a)for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
 function txt(parent,x,y,s,cls,anchor){const t=E("text",{x:f(x),y:f(y),class:cls,"text-anchor":anchor||"start"},parent);t.textContent=s;return t;}
 
-function sphere(){const p=[];for(let la=84;la>=-58;la-=2)p.push([180,la]);for(let la=-58;la<=84;la+=2)p.push([-180,la]);return poly(p);}
 function drawBase(svg,pfx){
   svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
   const defs=E("defs",{},svg);
   const mk=E("marker",{id:pfx+"ah",viewBox:"0 0 10 10",refX:"5",refY:"5",markerWidth:"3.2",markerHeight:"3.2",orient:"auto-start-reverse"},defs);
   E("path",{d:"M0,0L10,5L0,10z",fill:"#d7332a"},mk);
-  E("rect",{x:0,y:0,width:W,height:H,fill:"#e4f3f7"},svg);
-  E("path",{d:sphere(),fill:"#cbe9f0",stroke:"#7fbfd3","stroke-width":"1.2"},svg);
-  const eq=[];for(let lo=-180;lo<=180;lo+=10)eq.push([lo,0]);
+  E("rect",{x:0,y:0,width:W,height:H,fill:"#cbe9f0"},svg);
+  const eq=[];for(let lo=-180;lo<=180;lo+=4)eq.push([lo,0]);
   E("path",{d:poly(eq,false),fill:"none",stroke:"#9ccfde","stroke-width":"1","stroke-dasharray":"5 6"},svg);
   const land=E("g",{fill:"#fff",stroke:"#4f9fbb","stroke-width":"1.1","stroke-linejoin":"round"},svg);
   for(const k in LAND)E("path",{d:poly(LAND[k])},land);
@@ -525,24 +524,26 @@ function drawLink(g,key,pfx,provisional){
   const [a,b]=key.split("-");
   const attrs={fill:"none",stroke:"#d7332a","stroke-width":provisional?"4":"5","stroke-linecap":"round"};
   if(provisional)attrs["stroke-dasharray"]="10 6";
+  const pole=ne(0,90);
+  let p1,p2,c;
   if(key===pairKey("AO","NA")){
-    // flux transpacifique : il traverse le bord de la carte
-    const s=ne(126,37),c1=ne(158,58),e1=ne(180,48);
-    const s2=ne(-180,48),c2=ne(-150,52),e2=ne(-119,38);
-    E("path",Object.assign({d:`M${f(s[0])},${f(s[1])}Q${f(c1[0])},${f(c1[1])} ${f(e1[0])},${f(e1[1])}`,"marker-start":`url(#${pfx}ah)`},attrs),g);
-    E("path",Object.assign({d:`M${f(s2[0])},${f(s2[1])}Q${f(c2[0])},${f(c2[1])} ${f(e2[0])},${f(e2[1])}`,"marker-end":`url(#${pfx}ah)`},attrs),g);
-    return;
+    // flux transpacifique : la courbe passe au-dessus du Pacifique Nord
+    p1=ne(-121,39);p2=ne(126,36);
+    const mx=(p1[0]+p2[0])/2,my=(p1[1]+p2[1])/2,dx=mx-pole[0],dy=my-pole[1],dl=Math.hypot(dx,dy)||1,dist=Math.hypot(p2[0]-p1[0],p2[1]-p1[1]);
+    c=[mx+dx/dl*dist*0.42,my+dy/dl*dist*0.42];
+  } else {
+    p1=ne(NODES[a].lon,NODES[a].lat);p2=ne(NODES[b].lon,NODES[b].lat);
+    const mx=(p1[0]+p2[0])/2,my=(p1[1]+p2[1])/2,dx=pole[0]-mx,dy=pole[1]-my,dl=Math.hypot(dx,dy)||1,dist=Math.hypot(p2[0]-p1[0],p2[1]-p1[1]);
+    const k=Math.min(dist*0.22,dl*0.7);
+    c=[mx+dx/dl*k,my+dy/dl*k];
   }
-  let p1=ne(NODES[a].lon,NODES[a].lat),p2=ne(NODES[b].lon,NODES[b].lat);
-  const mx=(p1[0]+p2[0])/2,my=(p1[1]+p2[1])/2,dist=Math.hypot(p2[0]-p1[0],p2[1]-p1[1]);
-  const c=[mx,my-dist*0.28];
   p1=shorten(p1,c,16);p2=shorten(p2,c,16);
   E("path",Object.assign({d:`M${f(p1[0])},${f(p1[1])}Q${f(c[0])},${f(c[1])} ${f(p2[0])},${f(p2[1])}`,"marker-start":`url(#${pfx}ah)`,"marker-end":`url(#${pfx}ah)`},attrs),g);
 }
 function drawDetroit(g,labels){
   const [x,y]=ne(DETROIT.lon,DETROIT.lat);
   E("path",{d:`M${f(x)},${f(y-7)}L${f(x+7)},${f(y)}L${f(x)},${f(y+7)}L${f(x-7)},${f(y)}Z`,fill:"#111",stroke:"#fff","stroke-width":"1.2"},g);
-  if(labels)txt(labels,x+5,y-10,"Detroit","lab","start");
+  if(labels)txt(labels,x+9,y+5,"Detroit","lab","start");
 }
 
 /* ---------- Carte principale ---------- */
@@ -550,6 +551,23 @@ const map=document.getElementById("map");
 drawBase(map,"m");
 const L={};
 ["zones","mega","flux","nodes","cities","detroit","oceans","labels","fx"].forEach(n=>L[n]=E("g",{},map));
+/* Échelle graphique : dans cette projection, les distances sont exactes le long des méridiens (1° = 111 km). */
+const SCALE=E("g",{"aria-label":"Échelle",role:"img"},map);
+function drawScale(){
+  SCALE.innerHTML="";
+  const u=vb[2]/W, kmPerUnit=111.2/K, target=0.2*vb[2]*kmPerUnit;
+  const nice=[100,200,250,500,1000,1500,2000,2500,3000,4000,5000];
+  let km=nice[0];nice.forEach(n=>{if(Math.abs(n-target)<Math.abs(km-target))km=n;});
+  const len=km/kmPerUnit, x0=vb[0]+26*u, y0=vb[1]+vb[3]-34*u, h=8*u, fs=17*u;
+  E("rect",{x:f(x0-12*u),y:f(y0-28*u),width:f(len+24*u+86*u),height:f(60*u),rx:f(6*u),fill:"#fff","fill-opacity":".85",stroke:"#15314b","stroke-width":f(1*u)},SCALE);
+  E("rect",{x:f(x0),y:f(y0),width:f(len/2),height:f(h),fill:"#15314b"},SCALE);
+  E("rect",{x:f(x0+len/2),y:f(y0),width:f(len/2),height:f(h),fill:"#fff",stroke:"#15314b","stroke-width":f(1.2*u)},SCALE);
+  E("rect",{x:f(x0),y:f(y0),width:f(len),height:f(h),fill:"none",stroke:"#15314b","stroke-width":f(1.2*u)},SCALE);
+  const t=(x,s,a)=>{const e=E("text",{x:f(x),y:f(y0-6*u),"text-anchor":a,"font-size":f(fs),"font-family":"Atkinson Hyperlegible, sans-serif",fill:"#15314b"},SCALE);e.textContent=s;};
+  t(x0,"0","middle");t(x0+len/2,(km/2).toLocaleString("fr-FR"),"middle");t(x0+len,km.toLocaleString("fr-FR")+" km","start");
+  const n=E("text",{x:f(x0),y:f(y0+h+15*u),"font-size":f(fs*.82),"font-family":"Atkinson Hyperlegible, sans-serif","font-style":"italic",fill:"#15314b"},SCALE);
+  n.textContent="exacte dans le sens nord-sud";
+}
 
 function renderMap(){
   for(const k in L)L[k].innerHTML="";
@@ -636,17 +654,22 @@ function blinkAt(lon,lat){
 }
 
 /* ---------- Zoom ---------- */
-const VIEWS={monde:[[-180,84],[180,-58]],amn:[[-128,58],[-62,18]],eur:[[-14,62],[44,34]],asie:[[94,46],[152,-4]]};
+const VIEWS={
+ amn:[[-130,56],[-62,52],[-122,24],[-78,22],[-100,18]],
+ eur:[[-22,62],[44,64],[-14,32],[38,33]],
+ asie:[[98,48],[150,46],[100,-2],[150,22],[118,10]]
+};
 let vb=[0,0,W,H],anim=null;
 function viewFor(z){
   if(z==="monde")return [0,0,W,H];
-  const a=ne(...VIEWS[z][0]),b=ne(...VIEWS[z][1]);
-  let x=Math.min(a[0],b[0]),y=Math.min(a[1],b[1]),w=Math.abs(b[0]-a[0]),h=Math.abs(b[1]-a[1]);
+  const P=VIEWS[z].map(q=>ne(...q)),xs=P.map(q=>q[0]),ys=P.map(q=>q[1]);
+  let x=Math.min(...xs),y=Math.min(...ys),w=Math.max(...xs)-x,h=Math.max(...ys)-y;
+  x-=w*.06;y-=h*.06;w*=1.12;h*=1.12;
   const ar=W/H; if(w/h<ar){const nw=h*ar;x-=(nw-w)/2;w=nw;}else{const nh=w/ar;y-=(nh-h)/2;h=nh;}
   return [x,y,w,h];
 }
 const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-function setZ(){map.style.setProperty("--z",Math.max(.25,vb[2]/W).toFixed(3));}
+function setZ(){map.style.setProperty("--z",Math.pow(Math.max(.1,vb[2]/W),0.75).toFixed(3));drawScale();}
 function zoomTo(z){
   document.querySelectorAll(".zb").forEach(b=>b.setAttribute("aria-pressed",b.dataset.z===z?"true":"false"));
   const to=viewFor(z),from=vb.slice();
@@ -842,7 +865,7 @@ function renderBilan(){
   <div class="copy"><p style="margin:0"><b>Le travail à rendre : ta copie à la main</b></p>
   <p style="margin:4px 0 0;font-size:.93rem">Reproduis cette carte finale sur ta fiche papier, au crayon de couleur. Vérifie que tu as :</p>
   <ul><li>recopié le titre ;</li><li>placé et nommé les 13 métropoles, avec des cercles pour les villes globales et des points pour les autres ;</li><li>dessiné les 3 mégalopoles et les 3 flux à double flèche ;</li><li>placé Detroit et les 5 autres villes en déclin avec un losange noir ;</li><li>nommé les 4 océans en bleu ;</li><li>complété la légende en 2 parties, avec les mêmes figurés que sur la carte ;</li><li>soigné ton travail : couleurs, écriture lisible.</li></ul></div>
-  <div class="row"><button class="btn" id="print">Imprimer la carte modèle</button><button class="btn alt" id="restart">Recommencer</button></div>`;
+  <div class="row"><button class="btn" id="seeMap">Voir ma carte</button><button class="btn alt" id="print">Imprimer</button><button class="btn alt" id="restart">Recommencer</button></div>`;
 }
 let BILAN_OK=[];
 function shuffleSeed(a,s){const r=a.slice();for(let i=r.length-1;i>0;i--){const j=(i*7+s*3+1)%(i+1);[r[i],r[j]]=[r[j],r[i]];}return r;}
@@ -934,6 +957,7 @@ function bindPanel(){
   const pa=$("#para");
   if(pa)pa.addEventListener("input",()=>{const v=norm(pa.value);$$("#chk li").forEach(li=>li.classList.toggle("on",li.dataset.k.split("|").some(k=>v.includes(k))));});
   const pr=$("#print");if(pr)pr.addEventListener("click",()=>{zoomTo("monde");setTimeout(()=>window.print(),reduce?50:520);});
+  const sm=$("#seeMap");if(sm)sm.addEventListener("click",()=>{zoomTo("monde");document.querySelector(".sheet").scrollIntoView({behavior:reduce?"auto":"smooth",block:"start"});});
   const rs=$("#restart");if(rs)rs.addEventListener("click",()=>{T.on=false;S=freshState();zoomTo("monde");renderAll();window.scrollTo(0,0);});
 }
 
@@ -1012,10 +1036,10 @@ function buildDoc(n){
   if(n===1){CITIES.forEach(c=>{drawCityMark(g,c,c.g);drawCityLabel(lb,c);});
     leg=`<span>${fig("g")} villes globales</span><span>${fig("m")} autres métropoles mondiales</span>`;}
   if(n===2){drawMega(g,lb);
-    [["Océan Pacifique",-140,8],["Océan Atlantique",-36,12],["Océan Indien",76,-22],["Océan Pacifique",160,16]].forEach(o=>{const p=ne(o[1],o[2]);txt(lb,p[0],p[1],o[0],"lab-oce","middle");});
+    [["Océan Pacifique",-140,8],["Océan Atlantique",-36,12],["Océan Indien",72,-18],["Océan Pacifique",160,16]].forEach(o=>{const p=ne(o[1],o[2]);txt(lb,p[0],p[1],o[0],"lab-oce","middle");});
     leg=`<span>${fig("meg")} mégalopoles</span>`;}
   if(n===3){TRIAD.forEach(k=>drawLink(g,k,"d3",false));
-    [["Océan Pacifique",-140,8],["Océan Atlantique",-36,12],["Océan Indien",76,-22],["Océan Pacifique",160,16]].forEach(o=>{const p=ne(o[1],o[2]);txt(lb,p[0],p[1],o[0],"lab-oce","middle");});
+    [["Océan Pacifique",-140,8],["Océan Atlantique",-36,12],["Océan Indien",72,-18],["Océan Pacifique",160,16]].forEach(o=>{const p=ne(o[1],o[2]);txt(lb,p[0],p[1],o[0],"lab-oce","middle");});
     leg=`<span>${fig("fl")} flux majeurs (informations, capitaux, marchandises)</span>`;}
   const titles={1:"Document 1. Les villes mondiales",2:"Document 2. Les mégalopoles du monde",3:"Document 3. Les principaux flux mondiaux"};
   dbody.innerHTML=`<h3>${titles[n]}</h3>`;
@@ -1101,6 +1125,7 @@ document.getElementById("fillAll").addEventListener("click",()=>{
 })();
 
 renderAll();
+drawScale();
 })();
 </script>
 </body>
